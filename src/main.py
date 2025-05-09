@@ -60,10 +60,7 @@ def init_db(conn, cursor):
 
 
 if __name__ == "__main__":
-    # Connect to the SQLite database
     conn = sqlite3.connect('warehouse.db')
-
-    # Create a cursor object
     cursor = conn.cursor()
 
     # Enable foreign key constraint enforcement
