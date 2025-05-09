@@ -18,7 +18,7 @@ def init_db(conn, cursor):
     CREATE TABLE IF NOT EXISTS Product (
         ID INTEGER PRIMARY KEY,
         sup_ID INTEGER NOT NULL,
-        desc TEXT,
+        description TEXT,
         FOREIGN KEY (sup_ID) REFERENCES Supplier(ID)
     );
     """)
@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
     init_db(conn, cursor)
 
-    
+
 
     # Close the connection
     conn.close()
