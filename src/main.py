@@ -26,6 +26,11 @@ if __name__ == "__main__":
         INSERT INTO products (sku, batch_number, total_cost, measurement, nr_of, exp_date)
         VALUES (123456, 1, 19.99, 'kg', 10, '2024-12-31')
     ''')
+    
+    cursor.execute('''
+        INSERT INTO products (sku, batch_number, total_cost, measurement, nr_of, exp_date)
+        VALUES (123456, 1, 19.99, 'kg', 10, '2024-12-31')
+    ''')
 
     # Save (commit) the changes
     conn.commit()
