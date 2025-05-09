@@ -11,13 +11,18 @@ if __name__ == "__main__":
 
     # Create a table
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL,
-            age INTEGER NOT NULL
+        CREATE TABLE IF NOT EXISTS products (
+            sku INTEGER PRIMARY KEY,
+            batch_number INTEGER PRIMARY KEY,
+            total_cost REAL,
+            measurement TEXT,
+			nr_of INTEGER,
+            exp_date DATE
         )
     ''')
 
+
+    # Ex:
     # Insert a row of data
     cursor.execute('''
         INSERT INTO users (name, age)
