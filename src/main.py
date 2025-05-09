@@ -1,5 +1,4 @@
 import sqlite3
-import os
 
 if __name__ == "__main__":
     # Connect to the SQLite database
@@ -22,11 +21,6 @@ if __name__ == "__main__":
     ''')
 
     # Ex: Insert a row of data
-    cursor.execute('''
-        INSERT INTO products (sku, batch_number, total_cost, measurement, nr_of, exp_date)
-        VALUES (123456, 1, 19.99, 'kg', 10, '2024-12-31')
-    ''')
-    
     cursor.execute('''
         INSERT INTO products (sku, batch_number, total_cost, measurement, nr_of, exp_date)
         VALUES (123456, 1, 19.99, 'kg', 10, '2024-12-31')
