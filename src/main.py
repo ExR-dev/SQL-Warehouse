@@ -1,75 +1,82 @@
-import sqlite3
-import warehouseUtils
+import database
 
+# Command-line command functions
+def cmd_quit(cmd_in: str, db: database.Database) -> bool:
+    params = cmd_in.split(" ")
+    cmd = params.pop(0) # Separate the main command from the parameters
 
-def init_db(conn, cursor):
-    """Initialize the database with the required tables."""
+    # Check if the string executes this command
+    passed = False
+    if (cmd == "quit") or (cmd == "exit") or (cmd == "q") or (cmd == "qq"):
+        passed = True
 
-    # Create Supplier table
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS Supplier (
-        ID INTEGER PRIMARY KEY,
-        address TEXT NOT NULL,
-        contact TEXT NOT NULL
-    );
-    """)
+    if not passed:
+        return False
+    
+    confirm = ("y" in params) or ("-y" in params) or (cmd == "qq")
 
-    # Create Product table
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS Product (
-        ID INTEGER PRIMARY KEY,
-        sup_ID INTEGER NOT NULL,
-        description TEXT,
-        FOREIGN KEY (sup_ID) REFERENCES Supplier(ID)
-    );
-    """)
+    if not confirm:
+        print("Are you sure you want to quit? (y/n)")
+        while not confirm:
+            confirm_in = input().lower()
+            if confirm_in == "y":
+                confirm = True
+            elif confirm_in == "n":
+                break
 
-    # Create Warehouse table
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS Warehouse (
-        ID INTEGER PRIMARY KEY,
-        address TEXT NOT NULL
-    );
-    """)
+    if confirm:
+        print("Closing Database...")
+        db.close()
+    else:
+        print("Quit Aborted.")
+    return True
 
-    # Create Stock table
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS Stock (
-        ID INTEGER PRIMARY KEY,
-        quantity INTEGER NOT NULL,
-        prod_ID INTEGER NOT NULL,
-        WH_ID INTEGER NOT NULL,
-        minQuantity INTEGER NOT NULL,
-        FOREIGN KEY (prod_ID) REFERENCES Product(ID),
-        FOREIGN KEY (WH_ID) REFERENCES Warehouse(ID)
-    );
-    """)
+def cmd_help(cmd_in: str, db: database.Database) -> bool:
+    params = cmd_in.split(" ")
+    cmd = params.pop(0) # Separate the main command from the parameters
 
-    # Create ToRestock table
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS ToRestock (
-        ID INTEGER PRIMARY KEY,
-        stock_ID INTEGER NOT NULL,
-        dateAdded TEXT NOT NULL,
-        dateOrdered TEXT,
-        FOREIGN KEY (stock_ID) REFERENCES Stock(ID)
-    );
-    """)
+    # Check if the string executes this command
+    passed = False
+    if (cmd == "help") or (cmd == "h"):
+        passed = True
+    
+    if not passed:
+        return False
 
-    # Commit connection
-    conn.commit()
+    cmd_names = (
+        "quit", 
+        "help", 
+        # ...
+    )
+
+    print("\n".join(cmd_names))
+    return True
+
+def cmd_null(cmd_in: str, db: database.Database) -> bool:
+    print("Unknown command. Try \"help\" for a list of available commands.")
+    return True
 
 
 if __name__ == "__main__":
-    conn = sqlite3.connect('warehouse.db')
-    cursor = conn.cursor()
+    # Initialize the database
+    db = database.Database("warehouse.db")
 
-    # Enable foreign key constraint enforcement
-    cursor.execute("PRAGMA foreign_keys = ON;")
+    cmd_list = [
+        cmd_quit, 
+        cmd_help, 
+        # ...
+        cmd_null
+    ]
 
-    init_db(conn, cursor)
+    while db.is_open():
+        try:
+            cmd_in = input("> ").lower() # Standardize input to lowercase
+        except:
+            print("\nError: Closing Database...")
+            db.close()
+            break
 
-
-
-    # Close the connection
-    conn.close()
+        for cmd in cmd_list:
+            if cmd(cmd_in, db):
+                break
+        print(" ")
