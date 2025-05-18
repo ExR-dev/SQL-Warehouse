@@ -1,4 +1,5 @@
 import sqlite3
+import warehouseUtils
 
 
 def init_db(conn, cursor):
@@ -44,9 +45,9 @@ def init_db(conn, cursor):
     );
     """)
 
-    # Create toRestock table
+    # Create ToRestock table
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS toRestock (
+    CREATE TABLE IF NOT EXISTS ToRestock (
         ID INTEGER PRIMARY KEY,
         stock_ID INTEGER NOT NULL,
         dateAdded TEXT NOT NULL,
