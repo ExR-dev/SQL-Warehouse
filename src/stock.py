@@ -55,6 +55,16 @@ class Stock:
         END;
         """, multi=True)
 
+        # Creates procedure that selects the total quantity of all product group
+        self.cursor.execute('''
+        DROP PROCEDURE IF EXISTS total_quantity;
+        CREATE PROCEDURE total_quantity()
+	    BEGIN
+		    SELECT prod_ID AS ProductID, SUM(quantity) AS totalQuantity 
+		    FROM Stock
+		    GROUP BY prod_ID;
+	    END;
+        ''', multi=True)
 
     def insert(self, values: list):
         """
