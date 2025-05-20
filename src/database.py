@@ -1,5 +1,5 @@
 import mysql.connector
-# import sqlite3
+from mysql.connector import Error, HAVE_CEXT
 from typing import Optional
 import warehouse
 import supplier
@@ -15,18 +15,31 @@ class Database:
 
         :param db_name: Name of the database file
         """
+        try:
+            self.conn = mysql.connector.connect(
+                host='localhost',
+                port=3306,
+                user='root',
+                password='0000'
+            )
+
+            if self.conn.is_connected():
+                print("Connected to MySQL database")
+
+        except Error as e:
+            print("Error while connecting to MySQL", e)
+
+        finally:
+            if 'connection' in locals() and self.conn.is_connected():
+                self.conn.close()
+                print("MySQL connection is closed")
+
         self.open = True
         self.db_name = db_name
 
-        # Open or create database file
-        self.conn = mysql.connector.connect(
-            user='root',
-            password='0000',
-            host='localhost'
-        )
-
         self.cursor = self.conn.cursor()
         self.cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.db_name};")
+        self.cursor.execute(f"USE {self.db_name};")
         
         self.warehouse = warehouse.Warehouse(self.cursor)
         self.supplier = supplier.Supplier(self.cursor)
