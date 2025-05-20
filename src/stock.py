@@ -19,7 +19,9 @@ class Stock:
         # Add low-level trigger to check if stock is below minQuantity after inserting or updating stock
         # and add a restock order if it is
         self.cursor.execute("""
-        CREATE TRIGGER IF NOT EXISTS schedule
+        DROP TRIGGER IF EXISTS schedule;
+        
+        CREATE TRIGGER schedule
         AFTER INSERT ON Stock
         FOR EACH ROW
         BEGIN
