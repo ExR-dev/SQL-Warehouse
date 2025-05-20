@@ -1,5 +1,5 @@
 import mysql.connector
-from mysql.connector import Error, HAVE_CEXT
+from mysql.connector import Error
 from typing import Optional
 import warehouse
 import supplier
