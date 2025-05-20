@@ -5,6 +5,7 @@ class Warehouse:
     def __init__(self, cursor):
         self.cursor = cursor
         self.table_name = "Warehouse"
+        self.table_columns = ["ID", "address"]
 
         # Create Warehouse table
         cursor.execute("""

@@ -5,6 +5,7 @@ class Product:
     def __init__(self, cursor):
         self.cursor = cursor
         self.table_name = "Product"
+        self.table_columns = ["ID", "sup_ID", "description"]
 
         self.cursor.execute("""
         CREATE TABLE IF NOT EXISTS Product (

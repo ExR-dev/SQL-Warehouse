@@ -5,6 +5,7 @@ class Stock:
     def __init__(self, cursor):
         self.cursor = cursor
         self.table_name = "Stock"
+        self.table_columns = ["ID", "quantity", "prod_ID", "WH_ID", "minQuantity"]
 
         self.cursor.execute("""
         CREATE TABLE IF NOT EXISTS Stock (

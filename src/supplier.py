@@ -4,6 +4,7 @@ class Supplier:
     def __init__(self, cursor):
         self.cursor = cursor
         self.table_name = "Supplier"
+        self.table_columns = ["ID", "address", "contact"]
 
         self.cursor.execute("""
         CREATE TABLE IF NOT EXISTS Supplier (

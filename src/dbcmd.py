@@ -80,11 +80,7 @@ def cmd_print(db: database.Database, cmd: str, params: list[str]) -> bool:
     table = params[0]
     columns = params[1:] if len(params) > 1 else None
 
-    if columns is not None:
-        db.print_table(table, columns)
-    else:
-        db.print_table(table)
-
+    db.print_table(table, columns)
     return True
 
 def cmd_sql(db: database.Database, cmd: str, params: list[str]) -> bool:

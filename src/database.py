@@ -67,7 +67,27 @@ class Database:
         if isinstance(columns, (list, tuple)):
             select_origin = ', '.join(columns)
 
-        self.cursor.execute(f"SELECT {select_origin} FROM {table};")
+        table = table.lower()
+        table_class = None
+        if table == "warehouse":
+            table_class = self.warehouse
+        elif table == "supplier":
+            table_class = self.supplier
+        elif table == "product":
+            table_class = self.product
+        elif table == "stock":
+            table_class = self.stock
+        elif table == "torestock":
+            table_class = self.toRestock
+        else:
+            raise ValueError(f"Unknown table: {table}")
+
+        if select_origin == "*":
+            print(table_class.table_columns)
+        else:
+            print(select_origin)
+
+        self.cursor.execute(f"SELECT {select_origin} FROM {table_class.table_name};")
         rows = self.cursor.fetchall()
         for row in rows:
             print(row)

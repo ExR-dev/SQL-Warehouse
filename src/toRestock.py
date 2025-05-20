@@ -6,6 +6,7 @@ class ToRestock:
     def __init__(self, cursor):
         self.cursor = cursor
         self.table_name = "ToRestock"
+        self.table_columns = ["ID", "stock_ID", "dateAdded", "dateOrdered"]
 
         self.cursor.execute("""
         CREATE TABLE IF NOT EXISTS ToRestock (
