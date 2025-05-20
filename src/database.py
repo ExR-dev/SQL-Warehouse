@@ -14,6 +14,7 @@ class Database:
 
         :param db_name: Name of the database file
         """
+        self.open = True
 
         self.db_file = db_name
         if db_name.find(".") == -1:
@@ -34,7 +35,6 @@ class Database:
 
         # Commit connection
         self.commit()
-        self.open = True
 
     def __del__(self):
         """

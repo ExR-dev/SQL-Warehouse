@@ -117,7 +117,7 @@ def cmd_insert(cmd_in: str, db: database.Database) -> bool:
         print("Usage: insert <table> <values>")
         return True
 
-    table = params[0]
+    table = params[0].lower()
     values = params[1:]
 
     db.insert(table, values)
