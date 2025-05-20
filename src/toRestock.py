@@ -25,7 +25,7 @@ class ToRestock:
         """
         self.cursor.execute("""
         INSERT INTO ToRestock (stock_ID, dateAdded)
-        VALUES (?, DATE('now'));
+        VALUES (%s, CURDATE());
         """, values)
 
     def get_order_list(self, warehouse_id: int) -> list[Any]:

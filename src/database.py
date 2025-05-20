@@ -25,10 +25,9 @@ class Database:
 
             if self.conn.is_connected():
                 print("Connected to MySQL database")
-
         except Error as e:
             print("Error while connecting to MySQL", e)
-
+            return
         finally:
             if 'connection' in locals() and self.conn.is_connected():
                 self.conn.close()
@@ -37,7 +36,9 @@ class Database:
         self.open = True
         self.db_name = db_name
 
+
         self.cursor = self.conn.cursor()
+
         self.cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.db_name};")
         self.cursor.execute(f"USE {self.db_name};")
         
@@ -46,9 +47,6 @@ class Database:
         self.product = product.Product(self.cursor)
         self.stock = stock.Stock(self.cursor)
         self.toRestock = toRestock.ToRestock(self.cursor)
-
-        # Commit connection
-        self.commit()
 
     def __del__(self):
         """
@@ -80,13 +78,22 @@ class Database:
 
         :param table: Name of the table to insert into
         :param values: List of values to insert
-        """            
-        self.cursor.execute(f"""
-        INSERT INTO {table} (address)
-        VALUES (?);
-        """, values)
+        """
+        table = table.lower()
+        if table == "warehouse":
+            self.warehouse.insert(values)
+        elif table == "supplier":
+            self.supplier.insert(values)
+        elif table == "product":
+            self.product.insert(values)
+        elif table == "stock":
+            self.stock.insert(values)
+        elif table == "torestock":
+            self.toRestock.insert(values)
+        else:
+            raise ValueError(f"Unknown table: {table}")
 
-    def update(self, table: str, set_values: list, where: str):
+    def update(self, table: str, set_values: list[str], where: str):
         """
         Update values in a specified table.
 
@@ -94,13 +101,17 @@ class Database:
         :param set_values: List of values to set
         :param where: WHERE clause for the update
         """
-        set_clause = ', '.join([f"{col} = ?" for col in set_values])
-        self.cursor.execute(f"""
+        set_str = ', '.join([f"{col}" for col in set_values])
+        set_str = set_str.replace('=', ' = ')
+
+        str_cmd = f"""
         UPDATE {table}
-        SET {set_clause}
+        SET {set_str}
         WHERE {where};
-        """, set_values)
-            
+        """
+        print(str_cmd)
+
+        self.cursor.execute(str_cmd)
 
     def commit(self):
         """

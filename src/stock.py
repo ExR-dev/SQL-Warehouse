@@ -20,35 +20,40 @@ class Stock:
 
         # Create a row-level trigger to check if stock is below minQuantity after inserting or updating stock.
         self.cursor.execute("""
-        CREATE TRIGGER IF NOT EXISTS schedule_insert
+        DROP TRIGGER IF EXISTS schedule_insert;
+        CREATE TRIGGER schedule_insert
         AFTER INSERT ON Stock
         FOR EACH ROW
-        WHEN NEW.quantity < NEW.minQuantity
         BEGIN
-            INSERT INTO ToRestock (stock_ID, dateAdded)
-            VALUES (NEW.ID, DATE('now'));
+            IF NEW.quantity < NEW.minQuantity THEN
+                INSERT INTO ToRestock (stock_ID, dateAdded)
+                VALUES (NEW.ID, CURDATE());
+            END IF;
         END;
-        """)
+        """, multi=True)
         
         # For the update, we must verify that there isn't already a restock order for that stock.
         # ToRestock can have a history of past orders for the same stock, so we must check 
         # if an order already exists by checking if the dateOrdered is NULL on any order with the same stock_ID.
         # If it does, we don't create a new order.
         self.cursor.execute("""
-        CREATE TRIGGER IF NOT EXISTS schedule_update
+        DROP TRIGGER IF EXISTS schedule_update;
+        CREATE TRIGGER schedule_update
         AFTER UPDATE ON Stock
         FOR EACH ROW
-        WHEN NEW.quantity < NEW.minQuantity AND OLD.quantity >= OLD.minQuantity
         BEGIN
-            INSERT INTO ToRestock (stock_ID, dateAdded)
-            SELECT NEW.ID, DATE('now')
-            WHERE NOT EXISTS (
-                SELECT 1
-                FROM ToRestock
-                WHERE stock_ID = NEW.ID AND dateOrdered IS NULL
-            );
+            IF NEW.quantity < NEW.minQuantity AND OLD.quantity >= OLD.minQuantity THEN
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM ToRestock
+                    WHERE stock_ID = NEW.ID AND dateOrdered IS NULL
+                ) THEN
+                    INSERT INTO ToRestock (stock_ID, dateAdded)
+                    VALUES (NEW.ID, CURDATE());
+                END IF;
+            END IF;
         END;
-        """)
+        """, multi=True)
 
 
     def insert(self, values: list):
@@ -59,5 +64,5 @@ class Stock:
         """
         self.cursor.execute("""
         INSERT INTO Stock (quantity, prod_ID, WH_ID, minQuantity)
-        VALUES (?, ?, ?, ?);
+        VALUES (%s, %s, %s, %s);
         """, values)

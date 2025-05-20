@@ -11,16 +11,16 @@ def cmd_help(db: database.Database, cmd: str, params: list[str]) -> bool:
         return False
 
     cmd_names = (
-        "save\n - Save the database",
-        "quit\n - Quit the application",
-        "print <table>\n - Print a table",
-        "insert <table> <values>\n - Insert a row into a table",
-        "update <table> <set_values> <where>\n - Update a row in a table",
-        "sql <query>\n - Execute a raw SQL query",
+        "- quit \nQuit the application",
+        "- save \nSave the database",
+        "- print <table> [<columns>] \nPrint a table",
+        "- sql <query> \nExecute a raw SQL query",
+        "- insert <table> <values> \nInsert a row into a table",
+        "- drop [<tables>] \nDrop the entire database or specific tables",
         # ...
     )
 
-    print("\n".join(cmd_names))
+    print("\n\n".join(cmd_names))
     return True
 
 def cmd_save(db: database.Database, cmd: str, params: list[str]) -> bool:
@@ -87,47 +87,6 @@ def cmd_print(db: database.Database, cmd: str, params: list[str]) -> bool:
 
     return True
 
-def cmd_insert(db: database.Database, cmd: str, params: list[str]) -> bool:
-    # Check if the string executes this command
-    passed = False
-    if (cmd == "insert"):
-        passed = True
-
-    if not passed:
-        return False
-
-    # Handle the insert command
-    if len(params) < 2:
-        print("Usage: insert <table> <values>")
-        return True
-
-    table = params[0].lower()
-    values = params[1:]
-
-    db.insert(table, values)
-    return True
-
-def cmd_update(db: database.Database, cmd: str, params: list[str]) -> bool:
-    # Check if the string executes this command
-    passed = False
-    if (cmd == "update"):
-        passed = True
-
-    if not passed:
-        return False
-
-    # Handle the update command
-    if len(params) < 3:
-        print("Usage: update <table> <set_values> <where>")
-        return True
-    
-    table = params[0].lower()
-    set_values = params[1:-1]
-    where = params[-1]
-
-    db.update(table, set_values, where)
-    return True
-
 def cmd_sql(db: database.Database, cmd: str, params: list[str]) -> bool:
     # Check if the string executes this command
     passed = False
@@ -149,6 +108,47 @@ def cmd_sql(db: database.Database, cmd: str, params: list[str]) -> bool:
     for row in rows:
         print(row)
 
+    return True
+
+def cmd_insert(db: database.Database, cmd: str, params: list[str]) -> bool:
+    # Check if the string executes this command
+    passed = False
+    if (cmd == "insert"):
+        passed = True
+
+    if not passed:
+        return False
+
+    # Handle the insert command
+    if len(params) < 2:
+        print("Usage: insert <table> <values>")
+        return True
+
+    table = params[0].lower()
+    values = params[1:]
+
+    db.insert(table, values)
+    return True
+
+def cmd_drop(db: database.Database, cmd: str, params: list[str]) -> bool:
+    # Check if the string executes this command
+    passed = False
+    if (cmd == "drop"):
+        passed = True
+
+    if not passed:
+        return False
+
+    if len(params) == 0:
+        db.cursor.execute(f"DROP DATABASE IF EXISTS {db.db_name};")
+        print(f"Database dropped.")
+        db.close()
+    else:
+        for i in range(len(params)):
+            params[i] = params[i].strip()
+            table = params[0].lower()
+            db.cursor.execute(f"DROP TABLE IF EXISTS {table};")
+            print(f"Table {table} dropped.")
     return True
 
 def cmd_null(db: database.Database, cmd: str, params: list[str]) -> bool:
@@ -213,9 +213,9 @@ def exec_cmd(db: database.Database, cmd_in: str) -> None:
         cmd_quit, 
         cmd_save,
         cmd_print,
-        cmd_insert,
-        cmd_update,
         cmd_sql,
+        cmd_insert,
+        cmd_drop,
         # ...
         cmd_null
     ]

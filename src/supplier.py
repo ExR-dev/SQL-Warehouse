@@ -21,6 +21,6 @@ class Supplier:
         """
         self.cursor.execute("""
         INSERT INTO Supplier (address, contact)
-        VALUES (?, ?);
+        VALUES (%s, %s);
         """, values)
         

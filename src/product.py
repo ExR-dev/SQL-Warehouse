@@ -23,5 +23,5 @@ class Product:
         """
         self.cursor.execute("""
         INSERT INTO Product (sup_ID, description)
-        VALUES (?, ?);
+        VALUES (%s, %s);
         """, values)

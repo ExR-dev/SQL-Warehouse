@@ -22,5 +22,5 @@ class Warehouse:
         """
         self.cursor.execute("""
         INSERT INTO Warehouse (address)
-        VALUES (?);
+        VALUES (%s);
         """, values)
