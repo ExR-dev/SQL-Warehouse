@@ -11,10 +11,12 @@ def cmd_help(db: database.Database, cmd: str, params: list[str]) -> bool:
         return False
 
     cmd_names = (
-        "save",
-        "quit", 
-        "insert",
-        "print",
+        "save\n - Save the database",
+        "quit\n - Quit the application",
+        "print <table>\n - Print a table",
+        "insert <table> <values>\n - Insert a row into a table",
+        "update <table> <set_values> <where>\n - Update a row in a table",
+        "sql <query>\n - Execute a raw SQL query",
         # ...
     )
 
@@ -105,6 +107,50 @@ def cmd_insert(db: database.Database, cmd: str, params: list[str]) -> bool:
     db.insert(table, values)
     return True
 
+def cmd_update(db: database.Database, cmd: str, params: list[str]) -> bool:
+    # Check if the string executes this command
+    passed = False
+    if (cmd == "update"):
+        passed = True
+
+    if not passed:
+        return False
+
+    # Handle the update command
+    if len(params) < 3:
+        print("Usage: update <table> <set_values> <where>")
+        return True
+    
+    table = params[0].lower()
+    set_values = params[1:-1]
+    where = params[-1]
+
+    db.update(table, set_values, where)
+    return True
+
+def cmd_sql(db: database.Database, cmd: str, params: list[str]) -> bool:
+    # Check if the string executes this command
+    passed = False
+    if (cmd == "sql"):
+        passed = True
+
+    if not passed:
+        return False
+
+    # Handle the SQL command
+    if len(params) != 1:
+        print("Usage: sql <query>")
+        return True
+
+    query = params[0]
+    db.cursor.execute(query)
+
+    rows = db.cursor.fetchall()
+    for row in rows:
+        print(row)
+
+    return True
+
 def cmd_null(db: database.Database, cmd: str, params: list[str]) -> bool:
     print("Unknown command. Try \"help\" for a list of available commands.")
     return True
@@ -156,17 +202,29 @@ def parse_cmd(cmd_in: str) -> tuple[str, list[str]]:
     return (cmd, params)
 
 def exec_cmd(db: database.Database, cmd_in: str) -> None:
-    func_list =[
+    """
+    Execute a command on the database.
+
+    :param db: Database object
+    :param cmd_in: Input command string
+    """
+    func_list = [
         cmd_help, 
         cmd_quit, 
         cmd_save,
         cmd_print,
         cmd_insert,
+        cmd_update,
+        cmd_sql,
         # ...
         cmd_null
     ]
 
     cmd_parsed = parse_cmd(cmd_in)
+    if cmd_parsed[0] == "sql":
+        # If the command is SQL, we don't need to parse it
+        cmd_sql(db, "sql", [cmd_in[4:]])
+        return
 
     for cmd_func in func_list:
         if cmd_func(db, cmd_parsed[0], cmd_parsed[1]):

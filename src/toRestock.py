@@ -1,8 +1,9 @@
-import sqlite3
+import mysql.connector
+# import sqlite3
 from typing import Any
 
 class ToRestock:
-    def __init__(self, cursor: sqlite3.Cursor):
+    def __init__(self, cursor):
         self.cursor = cursor
         self.table_name = "ToRestock"
 

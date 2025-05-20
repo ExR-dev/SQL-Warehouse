@@ -1,4 +1,5 @@
-import sqlite3
+import mysql.connector
+# import sqlite3
 from typing import Optional
 import warehouse
 import supplier
@@ -15,18 +16,18 @@ class Database:
         :param db_name: Name of the database file
         """
         self.open = True
-
-        self.db_file = db_name
-        if db_name.find(".") == -1:
-            self.db_file += ".db"
+        self.db_name = db_name
 
         # Open or create database file
-        self.conn = sqlite3.connect(self.db_file)
-        self.cursor = self.conn.cursor()
-        
-        # Enable foreign key constraint enforcement
-        self.cursor.execute("PRAGMA foreign_keys = ON;")
+        self.conn = mysql.connector.connect(
+            user='root',
+            password='0000',
+            host='localhost'
+        )
 
+        self.cursor = self.conn.cursor()
+        self.cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.db_name};")
+        
         self.warehouse = warehouse.Warehouse(self.cursor)
         self.supplier = supplier.Supplier(self.cursor)
         self.product = product.Product(self.cursor)
@@ -66,19 +67,26 @@ class Database:
 
         :param table: Name of the table to insert into
         :param values: List of values to insert
+        """            
+        self.cursor.execute(f"""
+        INSERT INTO {table} (address)
+        VALUES (?);
+        """, values)
+
+    def update(self, table: str, set_values: list, where: str):
         """
-        if table == "warehouse":
-            self.warehouse.insert(values)
-        elif table == "supplier":
-            self.supplier.insert(values)
-        elif table == "product":
-            self.product.insert(values)
-        elif table == "stock":
-            self.stock.insert(values)
-        elif table == "toRestock":
-            self.toRestock.insert(values)
-        else:
-            print(f"Unknown table: {table}")
+        Update values in a specified table.
+
+        :param table: Name of the table to update
+        :param set_values: List of values to set
+        :param where: WHERE clause for the update
+        """
+        set_clause = ', '.join([f"{col} = ?" for col in set_values])
+        self.cursor.execute(f"""
+        UPDATE {table}
+        SET {set_clause}
+        WHERE {where};
+        """, set_values)
             
 
     def commit(self):

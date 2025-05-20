@@ -1,7 +1,7 @@
-import sqlite3
+import mysql.connector
 
 class Supplier:
-    def __init__(self, cursor: sqlite3.Cursor):
+    def __init__(self, cursor):
         self.cursor = cursor
         self.table_name = "Supplier"
 

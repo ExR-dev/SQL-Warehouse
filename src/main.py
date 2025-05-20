@@ -3,7 +3,7 @@ import database
 
 if __name__ == "__main__":
     # Initialize the database
-    db = database.Database("warehouse.db")
+    db = database.Database("warehouseDatabase")
 
     while db.is_open():
         try:
