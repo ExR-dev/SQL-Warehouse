@@ -3,6 +3,7 @@ import sqlite3
 class Stock:
     def __init__(self, cursor: sqlite3.Cursor):
         self.cursor = cursor
+        self.table_name = "Stock"
 
         self.cursor.execute("""
         CREATE TABLE IF NOT EXISTS Stock (
@@ -18,7 +19,7 @@ class Stock:
 
         # Add low-level trigger to check if stock is below minQuantity after inserting or updating stock
         # and add a restock order if it is
-        self.cursor.execute("""        
+        self.cursor.execute("""
         CREATE TRIGGER IF NOT EXISTS schedule
         AFTER INSERT ON Stock
         FOR EACH ROW
@@ -27,3 +28,15 @@ class Stock:
             VALUES (NEW.ID, DATE('now'));
         END;
         """)
+
+
+    def insert(self, values: list):
+        """
+        Insert a new stock entry into the Stock table.
+
+        :param values: List of values to insert
+        """
+        self.cursor.execute("""
+        INSERT INTO Stock (quantity, prod_ID, WH_ID, minQuantity)
+        VALUES (?, ?, ?, ?);
+        """, values)

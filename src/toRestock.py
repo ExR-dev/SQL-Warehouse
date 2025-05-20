@@ -4,7 +4,8 @@ from typing import Any
 class ToRestock:
     def __init__(self, cursor: sqlite3.Cursor):
         self.cursor = cursor
-        
+        self.table_name = "ToRestock"
+
         self.cursor.execute("""
         CREATE TABLE IF NOT EXISTS ToRestock (
             ID INTEGER PRIMARY KEY,
@@ -14,6 +15,17 @@ class ToRestock:
             FOREIGN KEY (stock_ID) REFERENCES Stock(ID)
         );
         """)
+    
+    def insert(self, values: list):
+        """
+        Insert a new order into the ToRestock table.
+
+        :param values: List of values to insert
+        """
+        self.cursor.execute("""
+        INSERT INTO ToRestock (stock_ID, dateAdded)
+        VALUES (?, DATE('now'));
+        """, values)
 
     def get_order_list(self, warehouse_id: int) -> list[Any]:
         """
@@ -29,5 +41,3 @@ class ToRestock:
         """, (warehouse_id,))
 
         return self.cursor.fetchall()
-
-

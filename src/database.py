@@ -1,4 +1,5 @@
 import sqlite3
+from typing import Optional
 import warehouse
 import supplier
 import product
@@ -32,8 +33,59 @@ class Database:
         self.toRestock = toRestock.ToRestock(self.cursor)
 
         # Commit connection
-        self.conn.commit()
+        self.commit()
         self.open = True
+
+    def __del__(self):
+        """
+        Close the database connection when the object is deleted.
+        """
+        if self.open:
+            self.close()
+
+
+    def print_table(self, table: str, columns: Optional[list] = None):
+        """
+        Print the contents of a specified table.
+
+        :param table: Name of the table to print
+        :param columns: List of columns to print (optional)
+        """
+        select_origin = "*"
+        if isinstance(columns, (list, tuple)):
+            select_origin = ', '.join(columns)
+
+        self.cursor.execute(f"SELECT {select_origin} FROM {table};")
+        rows = self.cursor.fetchall()
+        for row in rows:
+            print(row)
+
+    def insert(self, table: str, values: list):
+        """
+        Insert values into a specified table.
+
+        :param table: Name of the table to insert into
+        :param values: List of values to insert
+        """
+        if table == "warehouse":
+            self.warehouse.insert(values)
+        elif table == "supplier":
+            self.supplier.insert(values)
+        elif table == "product":
+            self.product.insert(values)
+        elif table == "stock":
+            self.stock.insert(values)
+        elif table == "toRestock":
+            self.toRestock.insert(values)
+        else:
+            print(f"Unknown table: {table}")
+            
+
+    def commit(self):
+        """
+        Commit the current transaction.
+        """
+        self.conn.commit()
 
     def close(self):
         self.conn.close()
