@@ -18,7 +18,7 @@ class Stock:
         """)
 
         # Create a row-level trigger to check if stock is below minQuantity after inserting or updating stock.
-        self.cursor.execute(f"""
+        self.cursor.execute("""
         CREATE TRIGGER IF NOT EXISTS schedule_insert
         AFTER INSERT ON Stock
         FOR EACH ROW
@@ -33,7 +33,7 @@ class Stock:
         # ToRestock can have a history of past orders for the same stock, so we must check 
         # if an order already exists by checking if the dateOrdered is NULL on any order with the same stock_ID.
         # If it does, we don't create a new order.
-        self.cursor.execute(f"""
+        self.cursor.execute("""
         CREATE TRIGGER IF NOT EXISTS schedule_update
         AFTER UPDATE ON Stock
         FOR EACH ROW
