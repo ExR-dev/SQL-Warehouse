@@ -8,7 +8,7 @@ class Stock:
 
         self.cursor.execute("""
         CREATE TABLE IF NOT EXISTS Stock (
-            ID INTEGER PRIMARY KEY,
+            ID INTEGER AUTO_INCREMENT PRIMARY KEY,
             quantity INTEGER NOT NULL,
             prod_ID INTEGER NOT NULL,
             WH_ID INTEGER NOT NULL,

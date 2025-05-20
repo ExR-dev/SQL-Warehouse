@@ -9,7 +9,7 @@ class ToRestock:
 
         self.cursor.execute("""
         CREATE TABLE IF NOT EXISTS ToRestock (
-            ID INTEGER PRIMARY KEY,
+            ID INTEGER AUTO_INCREMENT PRIMARY KEY,
             stock_ID INTEGER NOT NULL,
             dateAdded TEXT NOT NULL,
             dateOrdered TEXT,

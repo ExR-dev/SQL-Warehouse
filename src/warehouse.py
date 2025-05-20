@@ -9,7 +9,7 @@ class Warehouse:
         # Create Warehouse table
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS Warehouse (
-            ID INTEGER PRIMARY KEY,
+            ID INTEGER AUTO_INCREMENT PRIMARY KEY,
             address TEXT NOT NULL
         );
         """)

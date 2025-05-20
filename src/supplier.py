@@ -7,7 +7,7 @@ class Supplier:
 
         self.cursor.execute("""
         CREATE TABLE IF NOT EXISTS Supplier (
-            ID INTEGER PRIMARY KEY,
+            ID INTEGER AUTO_INCREMENT PRIMARY KEY,
             address TEXT NOT NULL,
             contact TEXT NOT NULL
         );

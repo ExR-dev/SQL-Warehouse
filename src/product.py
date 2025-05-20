@@ -8,7 +8,7 @@ class Product:
 
         self.cursor.execute("""
         CREATE TABLE IF NOT EXISTS Product (
-            ID INTEGER PRIMARY KEY,
+            ID INTEGER AUTO_INCREMENT PRIMARY KEY,
             sup_ID INTEGER NOT NULL,
             description TEXT,
             FOREIGN KEY (sup_ID) REFERENCES Supplier(ID)
