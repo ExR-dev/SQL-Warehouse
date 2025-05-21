@@ -19,7 +19,7 @@ class Stock:
         """)
 
         # Create a row-level trigger to check if stock is below minQuantity after inserting or updating stock.
-        self.cursor.execute("""
+        schedule_insert_sql = """
         DROP TRIGGER IF EXISTS schedule_insert;
         CREATE TRIGGER schedule_insert
         AFTER INSERT ON Stock
@@ -30,13 +30,16 @@ class Stock:
                 VALUES (NEW.ID, CURDATE());
             END IF;
         END;
-        """, multi=True)
+        """
+
+        for _ in self.cursor.execute(schedule_insert_sql, multi=True):
+            pass
         
         # For the update, we must verify that there isn't already a restock order for that stock.
         # ToRestock can have a history of past orders for the same stock, so we must check 
         # if an order already exists by checking if the dateOrdered is NULL on any order with the same stock_ID.
         # If it does, we don't create a new order.
-        self.cursor.execute("""
+        schedule_update_sql = """
         DROP TRIGGER IF EXISTS schedule_update;
         CREATE TRIGGER schedule_update
         AFTER UPDATE ON Stock
@@ -53,10 +56,13 @@ class Stock:
                 END IF;
             END IF;
         END;
-        """, multi=True)
+        """
+
+        for _ in self.cursor.execute(schedule_update_sql, multi=True):
+            pass
 
         # Creates procedure that selects the total quantity of all product group
-        procedure_sql = '''
+        total_quantity_sql = '''
         DROP PROCEDURE IF EXISTS total_quantity;
         CREATE PROCEDURE total_quantity()
 	    BEGIN
@@ -66,7 +72,7 @@ class Stock:
 	    END
         '''
 
-        for _ in self.cursor.execute(procedure_sql, multi=True) :
+        for _ in self.cursor.execute(total_quantity_sql, multi=True) :
             pass
 
     def insert(self, values: list):
