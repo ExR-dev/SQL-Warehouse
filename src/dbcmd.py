@@ -202,6 +202,7 @@ def parse_cmd(cmd_in: str) -> tuple[str, list[str]]:
     return (cmd, params)
 
 def exec_cmd(db: database.Database, cmd_in: str) -> None:
+
     """
     Execute a command on the database.
 

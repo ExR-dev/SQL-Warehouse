@@ -15,7 +15,7 @@ class Warehouse:
         );
         """)
 
-    def insert(self, values: list):
+    def insert(self, values: list[str]):
         """
         Insert a new warehouse into the Warehouse table.
 

@@ -16,7 +16,7 @@ class Product:
         );
         """)
 
-    def insert(self, values: list):
+    def insert(self, values: list[str]):
         """
         Insert a new product into the Product table.
 

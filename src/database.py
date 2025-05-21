@@ -56,7 +56,7 @@ class Database:
             self.close()
 
 
-    def print_table(self, table: str, columns: Optional[list] = None):
+    def print_table(self, table: str, columns: Optional[list[str]] = None):
         """
         Print the contents of a specified table.
 
@@ -92,7 +92,7 @@ class Database:
         for row in rows:
             print(row)
 
-    def insert(self, table: str, values: list):
+    def insert(self, table: str, values: list[str]):
         """
         Insert values into a specified table.
 

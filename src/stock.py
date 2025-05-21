@@ -91,7 +91,7 @@ class Stock:
         for _ in self.cursor.execute(warehouse_inventory_sql, multi=True):
             pass
 
-    def insert(self, values: list):
+    def insert(self, values: list[str]):
         """
         Insert a new stock entry into the Stock table.
 

@@ -18,7 +18,7 @@ class ToRestock:
         );
         """)
     
-    def insert(self, values: list):
+    def insert(self, values: list[str]):
         """
         Insert a new order into the ToRestock table.
 
