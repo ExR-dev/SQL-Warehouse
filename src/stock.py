@@ -72,7 +72,22 @@ class Stock:
 	    END
         '''
 
-        for _ in self.cursor.execute(total_quantity_sql, multi=True) :
+        for _ in self.cursor.execute(total_quantity_sql, multi=True):
+            pass
+        
+        # Creates a procedure to view all stocks belonging to a specific warehouse
+        warehouse_inventory_sql = """
+        DROP PROCEDURE IF EXISTS warehouse_inventory;
+        CREATE PROCEDURE warehouse_inventory(IN active_warehouse_ID INT)
+        BEGIN
+            SELECT s.prod_ID AS ProductID, s.quantity AS Quantity, p.description AS Description
+            FROM Stock s
+            LEFT JOIN product p ON s.prod_ID  = p.ID
+            WHERE active_warehouse_ID = s.WH_ID;
+        END
+        """
+
+        for _ in self.cursor.execute(warehouse_inventory_sql, multi=True):
             pass
 
     def insert(self, values: list):
