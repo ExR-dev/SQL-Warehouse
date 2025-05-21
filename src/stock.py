@@ -20,7 +20,7 @@ class Stock:
         """)
 
         # Create a row-level trigger to check if stock is below minQuantity after inserting or updating stock.
-        self.cursor.execute("""
+        schedule_insert_sql = """
         DROP TRIGGER IF EXISTS schedule_insert;
         CREATE TRIGGER schedule_insert
         AFTER INSERT ON Stock
@@ -31,13 +31,16 @@ class Stock:
                 VALUES (NEW.ID, CURDATE());
             END IF;
         END;
-        """, multi=True)
+        """
+
+        for _ in self.cursor.execute(schedule_insert_sql, multi=True):
+            pass
         
         # For the update, we must verify that there isn't already a restock order for that stock.
         # ToRestock can have a history of past orders for the same stock, so we must check 
         # if an order already exists by checking if the dateOrdered is NULL on any order with the same stock_ID.
         # If it does, we don't create a new order.
-        self.cursor.execute("""
+        schedule_update_sql = """
         DROP TRIGGER IF EXISTS schedule_update;
         CREATE TRIGGER schedule_update
         AFTER UPDATE ON Stock
@@ -54,8 +57,39 @@ class Stock:
                 END IF;
             END IF;
         END;
-        """, multi=True)
+        """
 
+        for _ in self.cursor.execute(schedule_update_sql, multi=True):
+            pass
+
+        # Creates procedure that selects the total quantity of all product group
+        total_quantity_sql = '''
+        DROP PROCEDURE IF EXISTS total_quantity;
+        CREATE PROCEDURE total_quantity()
+	    BEGIN
+		    SELECT prod_ID AS ProductID, SUM(quantity) AS totalQuantity 
+		    FROM Stock
+		    GROUP BY prod_ID;
+	    END
+        '''
+
+        for _ in self.cursor.execute(total_quantity_sql, multi=True):
+            pass
+        
+        # Creates a procedure to view all stocks belonging to a specific warehouse
+        warehouse_inventory_sql = """
+        DROP PROCEDURE IF EXISTS warehouse_inventory;
+        CREATE PROCEDURE warehouse_inventory(IN active_warehouse_ID INT)
+        BEGIN
+            SELECT s.prod_ID AS ProductID, s.quantity AS Quantity, p.description AS Description
+            FROM Stock s
+            LEFT JOIN product p ON s.prod_ID  = p.ID
+            WHERE active_warehouse_ID = s.WH_ID;
+        END
+        """
+
+        for _ in self.cursor.execute(warehouse_inventory_sql, multi=True):
+            pass
 
     def insert(self, values: list):
         """
@@ -63,7 +97,10 @@ class Stock:
 
         :param values: List of values to insert
         """
-        self.cursor.execute("""
-        INSERT INTO Stock (quantity, prod_ID, WH_ID, minQuantity)
-        VALUES (%s, %s, %s, %s);
-        """, values)
+        if len(values) == 4:
+            self.cursor.execute("""
+            INSERT INTO Stock (quantity, prod_ID, WH_ID, minQuantity)
+            VALUES (%s, %s, %s, %s);
+            """, values)
+        else:
+            print("Error: inserting to stock expected values (quantity [int], prod_ID [int], WH_ID [int], minQuantity [int])")

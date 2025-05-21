@@ -21,7 +21,10 @@ class Warehouse:
 
         :param values: List of values to insert
         """
-        self.cursor.execute("""
-        INSERT INTO Warehouse (address)
-        VALUES (%s);
-        """, values)
+        if len(values) == 1:
+            self.cursor.execute("""
+            INSERT INTO Warehouse (address)
+            VALUES (%s);
+            """, values)
+        else:
+            print("Error: inserting to warehouse expected values (address [text])")

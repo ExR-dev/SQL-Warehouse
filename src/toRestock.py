@@ -24,10 +24,13 @@ class ToRestock:
 
         :param values: List of values to insert
         """
-        self.cursor.execute("""
-        INSERT INTO ToRestock (stock_ID, dateAdded)
-        VALUES (%s, CURDATE());
-        """, values)
+        if len(values) == 1:
+            self.cursor.execute("""
+            INSERT INTO ToRestock (stock_ID, dateAdded)
+            VALUES (%s, CURDATE());
+            """, values)
+        else:
+            print("Error: inserting to ToRestock expected values (stock_ID [int])")
 
     def get_order_list(self, warehouse_id: int) -> list[Any]:
         """

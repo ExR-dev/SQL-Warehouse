@@ -22,7 +22,10 @@ class Product:
 
         :param values: List of values to insert
         """
-        self.cursor.execute("""
-        INSERT INTO Product (sup_ID, description)
-        VALUES (%s, %s);
-        """, values)
+        if len(values) == 2:
+            self.cursor.execute("""
+            INSERT INTO Product (sup_ID, description)
+            VALUES (%s, %s);
+            """, values)
+        else:
+            print("Error: inserting to product expected values (sup_ID [int], description [text])")

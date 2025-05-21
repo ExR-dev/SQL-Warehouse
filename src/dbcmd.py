@@ -98,11 +98,15 @@ def cmd_sql(db: database.Database, cmd: str, params: list[str]) -> bool:
         return True
 
     query = params[0]
-    db.cursor.execute(query)
 
-    rows = db.cursor.fetchall()
-    for row in rows:
-        print(row)
+    try:
+        for result in db.cursor.execute(query, multi=True):
+            if result.with_rows:
+                rows = result.fetchall()
+                for row in rows:
+                    print(row)
+    except Exception as e:
+        print(f"SQL Error: {e}")
 
     return True
 

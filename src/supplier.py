@@ -20,8 +20,10 @@ class Supplier:
 
         :param values: List of values to insert
         """
-        self.cursor.execute("""
-        INSERT INTO Supplier (address, contact)
-        VALUES (%s, %s);
-        """, values)
-        
+        if len(values) == 2:
+            self.cursor.execute("""
+            INSERT INTO Supplier (address, contact)
+            VALUES (%s, %s);
+            """, values)
+        else:
+            print("Error: inserting to supplier expected values (adress [text], contact [text])")
