@@ -75,7 +75,10 @@ class Stock:
 
         :param values: List of values to insert
         """
-        self.cursor.execute("""
-        INSERT INTO Stock (quantity, prod_ID, WH_ID, minQuantity)
-        VALUES (%s, %s, %s, %s);
-        """, values)
+        if len(values) == 4:
+            self.cursor.execute("""
+            INSERT INTO Stock (quantity, prod_ID, WH_ID, minQuantity)
+            VALUES (%s, %s, %s, %s);
+            """, values)
+        else:
+            print("Error: inserting to stock expected values (quantity [int], prod_ID [int], WH_ID [int], minQuantity [int])")
