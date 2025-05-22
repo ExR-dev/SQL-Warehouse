@@ -1,3 +1,4 @@
+import interface
 import database
 
 # Command-line command functions
@@ -11,6 +12,7 @@ def cmd_help(db: database.Database, cmd: str, params: list[str]) -> bool:
         return False
 
     cmd_names = (
+        "- interface \nSwitch to the simplified server interface",
         "- quit \nQuit the application",
         "- save \nSave the database",
         "- print [<table>] [<columns>] \nPrint a specific table, specific columns, or all tables if no parameters are given",
@@ -21,6 +23,18 @@ def cmd_help(db: database.Database, cmd: str, params: list[str]) -> bool:
     )
 
     print("\n\n".join(cmd_names))
+    return True
+
+def cmd_interface(db: database.Database, cmd: str, params: list[str]) -> bool:
+    # Check if the string executes this command
+    passed = False
+    if (cmd == "interface") or (cmd == "i"):
+        passed = True
+
+    if not passed:
+        return False
+
+    interface.menu_main(db)
     return True
 
 def cmd_save(db: database.Database, cmd: str, params: list[str]) -> bool:
@@ -212,6 +226,7 @@ def exec_cmd(db: database.Database, cmd_in: str) -> None:
     """
     func_list = [
         cmd_help, 
+        cmd_interface,
         cmd_quit, 
         cmd_save,
         cmd_print,
