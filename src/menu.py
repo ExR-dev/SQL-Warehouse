@@ -16,6 +16,11 @@ class Warehouse_Menu_Choices(Enum):
     View = "1"
     Update = "2"
 
+class Warehouse_View_Menu_Choices(Enum):
+    Back = "0"
+    Inventory = "1"
+    Retock_Needed = "2"
+
 # def start_menu():
 #     print("Establishing connection to database")
 #     conn = mysql.connector.connect(
@@ -39,7 +44,7 @@ def main_menu(db : Database) -> bool:
 
     while menu_open:
         print("\n==== Warehouse Inventory Main Menu ====")
-        print(curr_warehouse)
+        print(f"Current warehouse: {curr_warehouse}")
         for option in Main_Choices:
             print(f"{option.value}. {option.name.capitalize()}")
 
@@ -74,7 +79,6 @@ def warehouse_selection(cursor : MySQLCursor, curr_warehouse : int | None) -> st
     print("q to abort selection")
     cursor.execute("SELECT * FROM warehouse;")
 
-    
     while section_open:
         for result in cursor:
             print(result)
@@ -111,21 +115,75 @@ def warehouse_selection(cursor : MySQLCursor, curr_warehouse : int | None) -> st
 
     return choice
 
-def warehouse_menu(cursor : MySQLCursor, curr_warehouse : int):
+def warehouse_view_menu(cursor : MySQLCursor, curr_warehouse : int):
     section_open = True
 
-    print("==== Warehouse Menu ====")
-    print(f"Current warehouse: {curr_warehouse}")
-    
-    for option in Warehouse_Menu_Choices:
-        print(f"{option.value}. {option.name.capitalize()}")
-    
     while section_open:
+        print("==== Warehouse View Menu ====")
+        print(f"Current warehouse: {curr_warehouse}")
+        
+        for option in Warehouse_View_Menu_Choices:
+            print(f"{option.value}. {option.name.capitalize()}")
+
         try:
             choice = input("Choose an option:> ")
         except:
             print("\nError: Closing Menu")
-            menu_open = False
+            section_open = False
+    
+        if choice == Warehouse_View_Menu_Choices.Back.value:
+            print("Backing out")
+            section_open = False
+        
+        elif choice == Warehouse_View_Menu_Choices.Inventory.value:
+            sql_inventory_view = f'''CALL warehouse_inventory({curr_warehouse});'''
+
+            print("==== Warehouse Inventory ====")
+            print("[Product ID, Quantity, Description]")
+
+            try:    
+                for result in cursor.execute(sql_inventory_view, multi=True):
+                    if result.with_rows:
+                        rows = cursor.fetchall()
+                        for row in rows:
+                            print(row)
+            except Exception as e:
+                print("Error: Please Conntact system admin")
+                print(f"SQL Error: {e}")
+                
+            done = False
+            while not done:
+                try:
+                    confirm = input("Continue? (y/n): ")
+                except:
+                    print("\nError: Closing Menu")
+                    section_open = False
+                
+                if confirm == "y":
+                    done = True
+
+        elif choice == Warehouse_View_Menu_Choices.Retock_Needed.value:
+            pass
+
+def warehouse_stock_menu(cursor : MySQLCursor, curr_warehouse : int):
+    pass
+
+def warehouse_menu(cursor : MySQLCursor, curr_warehouse : int):
+    section_open = True
+
+    
+    while section_open:
+        print("==== Warehouse Menu ====")
+        print(f"Current warehouse: {curr_warehouse}")
+        
+        for option in Warehouse_Menu_Choices:
+            print(f"{option.value}. {option.name.capitalize()}")
+
+        try:
+            choice = input("Choose an option:> ")
+        except:
+            print("\nError: Closing Menu")
+            section_open = False
         
         if choice == Warehouse_Menu_Choices.Back.value:
             print("Going back")
@@ -133,8 +191,8 @@ def warehouse_menu(cursor : MySQLCursor, curr_warehouse : int):
 
         elif choice == Warehouse_Menu_Choices.View.value:
             print("initiate view menu")
+            warehouse_view_menu(cursor, curr_warehouse)
             
 
         elif  choice == Warehouse_Menu_Choices.Update.value:
             print("initiate update menu")
-        
