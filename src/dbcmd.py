@@ -13,7 +13,7 @@ def cmd_help(db: database.Database, cmd: str, params: list[str]) -> bool:
     cmd_names = (
         "- quit \nQuit the application",
         "- save \nSave the database",
-        "- print <table> [<columns>] \nPrint a table",
+        "- print [<table>] [<columns>] \nPrint a specific table, specific columns, or all tables if no parameters are given",
         "- sql <query> \nExecute a raw SQL query",
         "- insert <table> <values> \nInsert a row into a table",
         "- drop [<tables>] \nDrop the entire database or specific tables",
@@ -73,14 +73,15 @@ def cmd_print(db: database.Database, cmd: str, params: list[str]) -> bool:
         return False
 
     # Handle the print command
-    if len(params) < 1:
-        print("Usage: print <table> [<columns>]")
-        return True
+    if len(params) < 1: # Print all tables
+        for tbl in ["Warehouse", "Supplier", "Product", "Stock", "ToRestock"]:
+            print(f"\n{tbl}:")
+            db.print_table(tbl, None)
+    else: # Print specific table
+        table = params[0]
+        columns = params[1:] if len(params) > 1 else None
 
-    table = params[0]
-    columns = params[1:] if len(params) > 1 else None
-
-    db.print_table(table, columns)
+        db.print_table(table, columns)
     return True
 
 def cmd_sql(db: database.Database, cmd: str, params: list[str]) -> bool:
