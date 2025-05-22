@@ -91,6 +91,21 @@ class Stock:
         for _ in self.cursor.execute(warehouse_inventory_sql, multi=True):
             pass
 
+        # Create a procedure to view all restock associated to a specific warehouse
+        warehouse_torestock_list_sql = '''
+        DROP PROCEDURE IF EXISTS warehouse_torestock_list;
+        CREATE PROCEDURE warehouse_torestock_list(IN active_warehouse_ID INT)
+        BEGIN
+            SELECT r.ID AS restockID, r.stock_ID AS ProductID, r.dateAdded AS DateAdded
+            FROM ToRestock r
+            INNER JOIN Stock s ON r.stock_ID = s.ID
+            WHERE s.WH_ID = active_warehouse_ID;
+        END
+        '''
+
+        for _ in self.cursor.execute(warehouse_torestock_list_sql, multi=True):
+            pass
+
     def insert(self, values: list):
         """
         Insert a new stock entry into the Stock table.
