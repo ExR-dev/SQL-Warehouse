@@ -7,10 +7,14 @@ from enum import Enum
 
 class Main_Choices(Enum):
     exit = "0"
-    warehouse_selection = "1"
-    option2 = "2"
-    option3 = "3"
+    Select_Warehouse = "1"
+    Update_Database = "2"
     devmode = "dev"
+
+class Warehouse_Menu_Choices(Enum):
+    Back = "0"
+    View = "1"
+    Update = "2"
 
 # def start_menu():
 #     print("Establishing connection to database")
@@ -26,18 +30,19 @@ class Main_Choices(Enum):
 #     return devmode
 
 
-def main_menu(db : Database):
+def main_menu(db : Database) -> bool:
     menu_open = True
     devmode = False
     cursor = db.cursor
     curr_warehouse = None
 
-    print("\n==== Warehouse Inventory Main Menu ====")
-    print(curr_warehouse)
-    for option in Main_Choices:
-        print(f"{option.value}. {option.name.capitalize()}")
 
     while menu_open:
+        print("\n==== Warehouse Inventory Main Menu ====")
+        print(curr_warehouse)
+        for option in Main_Choices:
+            print(f"{option.value}. {option.name.capitalize()}")
+
         try:
             choice = input("Choose an option:> ")
         except:
@@ -53,14 +58,14 @@ def main_menu(db : Database):
             menu_open = False
             devmode = True
 
-        elif choice == Main_Choices.warehouse_selection.value:
-            curr_warehouse = warehouse_menu(cursor, curr_warehouse)
-            print(curr_warehouse)
+        elif choice == Main_Choices.Select_Warehouse.value:
+            curr_warehouse = warehouse_selection(cursor, curr_warehouse)
+            warehouse_menu(cursor, curr_warehouse)
             menu_open = True
 
     return devmode
 
-def warehouse_menu(cursor : MySQLCursor, curr_warehouse : int | None):
+def warehouse_selection(cursor : MySQLCursor, curr_warehouse : int | None) -> str:
     # Query the warehouse table print out as an option list move to next step in menu
     section_open = True
     options = []
@@ -73,6 +78,7 @@ def warehouse_menu(cursor : MySQLCursor, curr_warehouse : int | None):
     while section_open:
         for result in cursor:
             print(result)
+            # Adds warehouse ID as a string to option list
             options.append(str(result[0]))
 
         try:
@@ -104,3 +110,31 @@ def warehouse_menu(cursor : MySQLCursor, curr_warehouse : int | None):
 
 
     return choice
+
+def warehouse_menu(cursor : MySQLCursor, curr_warehouse : int):
+    section_open = True
+
+    print("==== Warehouse Menu ====")
+    print(f"Current warehouse: {curr_warehouse}")
+    
+    for option in Warehouse_Menu_Choices:
+        print(f"{option.value}. {option.name.capitalize()}")
+    
+    while section_open:
+        try:
+            choice = input("Choose an option:> ")
+        except:
+            print("\nError: Closing Menu")
+            menu_open = False
+        
+        if choice == Warehouse_Menu_Choices.Back.value:
+            print("Going back")
+            section_open = False
+
+        elif choice == Warehouse_Menu_Choices.View.value:
+            print("initiate view menu")
+            
+
+        elif  choice == Warehouse_Menu_Choices.Update.value:
+            print("initiate update menu")
+        
