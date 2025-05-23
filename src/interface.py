@@ -164,13 +164,48 @@ def menu_TODO(db: database.Database, params = None):
     return True
 
 def menu_restock_schedule(db: database.Database, params = None):
-    """
-    Submenu for showing that the chosen option is unimplemented
-    """
     menu_state = new_menu_state()
 
-    rows = db.toRestock.get_order_list(params)
-    menu_state["desc"] = tableUtils.table_to_string(db.toRestock.table_columns, rows)
+    query_str = f"CALL get_order_list({params});"
+    for ret in db.cursor.execute(query_str, multi=True):
+        if ret.with_rows:
+            field_names = [i[0] for i in ret.description]
+            rows = ret.fetchall()
+            menu_state["desc"] = tableUtils.table_to_string(field_names, rows)
+    
+    menu_state["options"].append({ 
+        "name": "Back", 
+        "func": go_back,
+        "params": None
+    })
+
+    while menu_state["loop"]:
+        menu_handler(db, menu_state)
+
+    clear()
+    return True
+
+def menu_restock_history(db: database.Database, params = None):
+    menu_state = new_menu_state()
+
+    # Fetch full restock history of current warehouse
+    # toRestock has stock_ID, Stock has WH_ID
+    # Stock has prod_ID, Product has description
+    # Remove items with no dateOrdered
+    db.cursor.execute(f"""
+    SELECT product_desc, dateAdded, dateOrdered FROM
+    (SELECT r.stock_ID, p.description AS product_desc, r.dateAdded, r.dateOrdered
+    FROM ToRestock r
+    INNER JOIN Stock s ON r.stock_ID = s.ID
+    INNER JOIN Product p ON s.prod_ID = p.ID
+    WHERE s.WH_ID = {params}
+    ORDER BY r.dateAdded DESC) AS subquery
+    WHERE dateOrdered IS NOT NULL;
+    """)
+
+    field_names = [i[0] for i in db.cursor.description]
+    rows = db.cursor.fetchall()
+    menu_state["desc"] = tableUtils.table_to_string(field_names, rows)
     
     menu_state["options"].append({ 
         "name": "Back", 
@@ -202,8 +237,8 @@ def menu_view_warehouse(db: database.Database, params = None):
 
     menu_state["options"].append({ 
         "name": "Restock History",
-        "func": menu_TODO,
-        "params": None
+        "func": menu_restock_history,
+        "params": params[0] # warehouse ID
     })
 
     while menu_state["loop"]:

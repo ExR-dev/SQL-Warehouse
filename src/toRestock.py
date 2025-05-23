@@ -31,6 +31,24 @@ class ToRestock:
 
         for _ in self.cursor.execute(warehouse_torestock_list_sql, multi=True):
             pass
+
+        # Get all active restock orders, ordered by dateAdded
+        get_order_list_sql = '''
+        DROP PROCEDURE IF EXISTS get_order_list;
+        CREATE PROCEDURE get_order_list(IN warehouse_id INT)
+        BEGIN
+            SELECT ToRestock.ID, ToRestock.dateAdded, ToRestock.dateOrdered, Stock.quantity, Product.description, Supplier.contact
+            FROM ToRestock
+            JOIN Stock ON ToRestock.stock_ID = Stock.ID
+            JOIN Product ON Stock.prod_ID = Product.ID
+            JOIN Supplier ON Product.sup_ID = Supplier.ID
+            WHERE Stock.WH_ID = warehouse_id
+            ORDER BY ToRestock.dateAdded ASC;
+        END
+        '''
+
+        for _ in self.cursor.execute(get_order_list_sql, multi=True):
+            pass
     
     def insert(self, values: list[str]):
         """
@@ -55,8 +73,8 @@ class ToRestock:
         FROM ToRestock
         JOIN Stock ON ToRestock.stock_ID = Stock.ID
         JOIN Product ON Stock.prod_ID = Product.ID
-        WHERE Stock.WH_ID = ?
+        WHERE Stock.WH_ID = %s
         ORDER BY ToRestock.dateAdded ASC;
-        """, (warehouse_id))
+        """, (warehouse_id,))
 
         return self.cursor.fetchall()
