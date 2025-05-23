@@ -21,19 +21,22 @@ class Warehouse_View_Menu_Choices(Enum):
     Inventory = "1"
     Retock_Needed = "2"
 
-# def start_menu():
-#     print("Establishing connection to database")
-#     conn = mysql.connector.connect(
-#                 host='localhost',
-#                 port=3306,
-#                 user='root',
-#                 password='0000'
-#             )
+class Warehouse_Update_Menu_Choices(Enum):
+    Back = "0"
+    Update_Stock = "1"
+    New_Stock = "2"
+    Change_Adress = "3"
     
-#     devmode = main_menu(conn)
-#     print("Exiting Menu")
-#     return devmode
+class Warehouse_Stock_Menu_Choices(Enum):
+    Back = "0"
+    Add_or_Sub_Quantity = "1"
+    Set_Quantity = "2"
+    Add_or_Sub_Minimum_Quantity = "3"
+    Set_Minimum_Quantity = "4"
 
+def print_menu_options(menu_class : Enum):
+    for option in menu_class:
+        print(f"{option.value}. {option.name.capitalize()}")
 
 def main_menu(db : Database) -> bool:
     menu_open = True
@@ -45,8 +48,7 @@ def main_menu(db : Database) -> bool:
     while menu_open:
         print("\n==== Warehouse Inventory Main Menu ====")
         print(f"Current warehouse: {curr_warehouse}")
-        for option in Main_Choices:
-            print(f"{option.value}. {option.name.capitalize()}")
+        print_menu_options(Main_Choices)
 
         try:
             choice = input("Choose an option:> ")
@@ -165,9 +167,7 @@ def warehouse_view_menu(cursor : MySQLCursor, curr_warehouse : int):
     while section_open:
         print("==== Warehouse View Menu ====")
         print(f"Current warehouse: {curr_warehouse}")
-        
-        for option in Warehouse_View_Menu_Choices:
-            print(f"{option.value}. {option.name.capitalize()}")
+        print_menu_options(Warehouse_View_Menu_Choices)
 
         try:
             choice = input("Choose an option:> ")
@@ -242,8 +242,11 @@ def warehouse_view_menu(cursor : MySQLCursor, curr_warehouse : int):
                 if confirm == "y":
                     done = True
 
+def warehouse_update_menu(cursor : MySQLCursor, curr_warehouse : int):
+    print_menu_options(Warehouse_Update_Menu_Choices)
+
 def warehouse_stock_menu(cursor : MySQLCursor, curr_warehouse : int):
-    pass
+    print_menu_options(Warehouse_Stock_Menu_Choices)
 
 def warehouse_menu(cursor : MySQLCursor, curr_warehouse : int):
     section_open = True
@@ -253,8 +256,7 @@ def warehouse_menu(cursor : MySQLCursor, curr_warehouse : int):
         print("==== Warehouse Menu ====")
         print(f"Current warehouse: {curr_warehouse}")
         
-        for option in Warehouse_Menu_Choices:
-            print(f"{option.value}. {option.name.capitalize()}")
+        print_menu_options(Warehouse_Menu_Choices)
 
         try:
             choice = input("Choose an option:> ")
