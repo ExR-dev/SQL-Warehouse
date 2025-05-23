@@ -11,8 +11,7 @@ def cmd_help(db: database.Database, cmd: str, params: list[str]) -> bool:
         return False
 
     cmd_names = (
-        "- interface \nSwitch to the simplified server interface",
-        "- quit \nQuit the application",
+        "- quit \nReturn to the simple interface",
         "- save \nSave the database",
         "- print [<table>] [<columns>] \nPrint a specific table, specific columns, or all tables if no parameters are given",
         "- sql <query> \nExecute a raw SQL query",
@@ -22,20 +21,6 @@ def cmd_help(db: database.Database, cmd: str, params: list[str]) -> bool:
     )
 
     print("\n\n".join(cmd_names))
-    return True
-
-def cmd_interface(db: database.Database, cmd: str, params: list[str]) -> bool:
-    # Check if the string executes this command
-    passed = False
-    if (cmd == "interface") or (cmd == "i"):
-        passed = True
-
-    if not passed:
-        return False
-    
-    import interface
-    interface.menu_main(db)
-    
     return True
 
 def cmd_save(db: database.Database, cmd: str, params: list[str]) -> bool:
@@ -60,23 +45,7 @@ def cmd_quit(db: database.Database, cmd: str, params: list[str]) -> bool:
     if not passed:
         return False
     
-    confirm = (cmd == "qq") or ("y" in params) or ("-y" in params)
-
-    if not confirm:
-        print("Are you sure you want to quit? (y/n)")
-        while not confirm:
-            confirm_in = input().lower()
-            if confirm_in == "y":
-                confirm = True
-            elif confirm_in == "n":
-                break
-
-    if confirm:
-        print("Closing Database...")
-        db.close()
-    else:
-        print("Quit Aborted.")
-    return True
+    return "quit"
 
 def cmd_print(db: database.Database, cmd: str, params: list[str]) -> bool:
     # Check if the string executes this command
@@ -218,7 +187,6 @@ def parse_cmd(cmd_in: str) -> tuple[str, list[str]]:
     return (cmd, params)
 
 def exec_cmd(db: database.Database, cmd_in: str) -> None:
-
     """
     Execute a command on the database.
 
@@ -226,9 +194,8 @@ def exec_cmd(db: database.Database, cmd_in: str) -> None:
     :param cmd_in: Input command string
     """
     func_list = [
-        cmd_help, 
-        cmd_interface,
-        cmd_quit, 
+        cmd_help,
+        cmd_quit,
         cmd_save,
         cmd_print,
         cmd_sql,
@@ -245,5 +212,12 @@ def exec_cmd(db: database.Database, cmd_in: str) -> None:
         return
 
     for cmd_func in func_list:
-        if cmd_func(db, cmd_parsed[0], cmd_parsed[1]):
+        ret = cmd_func(db, cmd_parsed[0], cmd_parsed[1])
+
+        if ret == False or ret == None: # input did not trigger command
+            continue
+        elif ret == True: # input triggered command, skip the rest
             break
+        elif ret == "quit":
+            return "quit"
+    return None

@@ -1,7 +1,7 @@
 import os
-from typing import Any
 import keyboard
 import database
+import dbcmd
 import tableUtils
 
 # Console
@@ -12,7 +12,7 @@ else:
     clear = lambda: os.system('clear')
 
 def print_separator(separator="-", prefix="", suffix=""):
-    print(prefix+(separator*50)+suffix)
+    print(prefix+(separator*60)+suffix)
 
 
 # User Input
@@ -163,6 +163,34 @@ def menu_TODO(db: database.Database, params = None):
     clear()
     return True
 
+def menu_view_warehouse(db: database.Database, params = None):
+    menu_state = new_menu_state()
+    menu_state["desc"] = "View data associated with this warehouse\nID: " + str(params[0]) + "\nAddress: " + str(params[1])
+
+    menu_state["options"].append({ 
+        "name": "Stock",
+        "func": menu_TODO,
+        "params": None
+    })
+
+    menu_state["options"].append({ 
+        "name": "Restock Schedule",
+        "func": menu_TODO,
+        "params": None
+    })
+
+    menu_state["options"].append({ 
+        "name": "Restock History",
+        "func": menu_TODO,
+        "params": None
+    })
+
+    while menu_state["loop"]:
+        menu_handler(db, menu_state)
+
+    clear()
+    return True
+
 def menu_view_warehouses(db: database.Database, params = None):
     menu_state = new_menu_state()
     menu_state["desc"] = "List of Warehouses"
@@ -173,9 +201,9 @@ def menu_view_warehouses(db: database.Database, params = None):
 
     # Add each warehouse as an option
     for row in rows:
-        menu_state["options"].append({ 
-            "name": row[1], # address
-            "func": menu_TODO,
+        menu_state["options"].append({
+            "name": f"[{row[0]}] " + row[1], # address
+            "func": menu_view_warehouse,
             "params": row
         })
 
@@ -185,13 +213,13 @@ def menu_view_warehouses(db: database.Database, params = None):
     clear()
     return True
 
-def menu_check_database(db: database.Database, params = None):
+def menu_view_database(db: database.Database, params = None):
     """
     Submenu for viewing data stored in the database, like seeing 
     stock counts, all stock in a warehouse, order schedule, etc.
     """
     menu_state = new_menu_state()
-    menu_state["desc"] = ""
+    menu_state["desc"] = "View data stored in the database"
     
     menu_state["options"].append({ 
         "name": "View Warehouses", 
@@ -212,17 +240,37 @@ def menu_modify_database(db: database.Database, params = None):
     """
     return menu_TODO(db)
 
+def menu_cmd(db: database.Database, params = None):
+    flush_input()
+    clear()
+    while db.is_open():
+        try:
+            cmd_in = input("> ")
+        except:
+            print("\nError: Closing Database...")
+            db.close()
+            return False
+            break
+
+        ret = dbcmd.exec_cmd(db, cmd_in)
+        if ret == "quit":
+            break
+        print(" ")
+
+    flush_input()
+    return True
+
 # Main Menu
 def menu_main(db: database.Database, params = None):
     """
     Main menu for the simplified database interface. Uses immediate keyboard input instead of text.
     """
     menu_state = new_menu_state()
-    menu_state["desc"] = "Database Interface\nArrow keys can be used to navigate, select and return."
+    menu_state["desc"] = "Database Interface\nArrow keys can be used to navigate, select and return"
     
     menu_state["options"].append({ 
-        "name": "Check Database", 
-        "func": menu_check_database,
+        "name": "View Database", 
+        "func": menu_view_database,
         "params": None
     })
 
@@ -232,8 +280,14 @@ def menu_main(db: database.Database, params = None):
         "params": None
     })
 
-    while menu_state["loop"]:
+    menu_state["options"].append({
+        "name": "Terminal", 
+        "func": menu_cmd,
+        "params": None
+    })
+
+    while db.is_open() and menu_state["loop"]:
         menu_handler(db, menu_state)
 
     clear()
-    print("Returning to command-line interface.\n")
+    print("Closing database interface.\n")

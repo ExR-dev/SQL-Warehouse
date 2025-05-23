@@ -138,7 +138,8 @@ class Database:
         self.conn.commit()
 
     def close(self):
-        self.conn.close()
+        if self.open:
+            self.conn.close()
         self.open = False
 
     def is_open(self) -> bool:
