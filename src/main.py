@@ -1,13 +1,28 @@
+import os
 import dbcmd
 import database
+
+# Console
+clear = lambda: print("Clear function not defined.")
+if os.name == 'nt':
+    clear = lambda: os.system('cls')
+else:
+    clear = lambda: os.system('clear')
+
 
 if __name__ == "__main__":
     # Initialize the database
     db = database.Database("warehouseDatabase")
 
-    if True:
-        import menu
+    clear()
+    mode = input("Set Mode (e/m): ").lower()
 
+    while mode not in ["e", "m"]:
+        clear()
+        mode = input("Set Mode (e/m): ").lower()
+
+    if mode == "m":
+        import menu
         devmode = menu.main_menu(db)
     
         if devmode:
@@ -27,7 +42,7 @@ if __name__ == "__main__":
             db.close()
     else:
         import interface
-        
+
         if db.is_open():
             interface.menu_main(db)
         
