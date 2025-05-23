@@ -242,16 +242,51 @@ def warehouse_view_menu(cursor : MySQLCursor, curr_warehouse : int):
                 if confirm == "y":
                     done = True
 
+# Not Done Currently working on
 def warehouse_update_menu(cursor : MySQLCursor, curr_warehouse : int):
-    print_menu_options(Warehouse_Update_Menu_Choices)
+    section_open = True
+    
+    while section_open:
+        print("==== Warehouse Update Menu ====")
+        print(f"Current Warehouse: {curr_warehouse}")
+        print_menu_options(Warehouse_Update_Menu_Choices)
+        try:
+            choice = input("Choose an option:> ")
+        except:
+            print("Error backing out of section")
+            choice = None
+            return choice
+        
+        if choice == Warehouse_Update_Menu_Choices.Back.value:
+            print("Backing out of section")
+            section_open = False
 
+        if choice == Warehouse_Update_Menu_Choices.Update_Stock.value:
+            warehouse_stock_menu(cursor, curr_warehouse)
+            section_open = True
+
+        if choice == Warehouse_Update_Menu_Choices.New_Stock.value:
+            pass
+
+        if choice == Warehouse_Update_Menu_Choices.Change_Adress.value:
+            pass
+# Not Done
 def warehouse_stock_menu(cursor : MySQLCursor, curr_warehouse : int):
+    # print intro
+
+    # print options
     print_menu_options(Warehouse_Stock_Menu_Choices)
+
+    # loop while open
+        # recieve choice
+
+        # handle choice
+
+        # return choice
 
 def warehouse_menu(cursor : MySQLCursor, curr_warehouse : int):
     section_open = True
 
-    
     while section_open:
         print("==== Warehouse Menu ====")
         print(f"Current warehouse: {curr_warehouse}")
@@ -275,4 +310,4 @@ def warehouse_menu(cursor : MySQLCursor, curr_warehouse : int):
 
         elif  choice == Warehouse_Menu_Choices.Update.value:
             print("initiate update menu")
-            stock = stock_selection(cursor, curr_warehouse)
+            warehouse_update_menu(cursor, curr_warehouse)
