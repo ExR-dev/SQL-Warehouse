@@ -1,6 +1,7 @@
 import mysql.connector
 from mysql.connector import Error
 from typing import Optional
+import tableUtils
 import warehouse
 import supplier
 import product
@@ -82,15 +83,12 @@ class Database:
         else:
             raise ValueError(f"Unknown table: {table}")
 
-        if select_origin == "*":
-            print(table_class.table_columns)
-        else:
-            print(select_origin)
-
         self.cursor.execute(f"SELECT {select_origin} FROM {table_class.table_name};")
         rows = self.cursor.fetchall()
-        for row in rows:
-            print(row)
+
+        # Determine the max character length of all columns
+        column_names = (table_class.table_columns) if (select_origin == "*") else (select_origin)
+        tableUtils.print_table(column_names, rows)
 
     def insert(self, table: str, values: list[str]):
         """

@@ -1,4 +1,3 @@
-import interface
 import database
 
 # Command-line command functions
@@ -33,8 +32,10 @@ def cmd_interface(db: database.Database, cmd: str, params: list[str]) -> bool:
 
     if not passed:
         return False
-
+    
+    import interface
     interface.menu_main(db)
+    
     return True
 
 def cmd_save(db: database.Database, cmd: str, params: list[str]) -> bool:

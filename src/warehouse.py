@@ -1,5 +1,4 @@
 import mysql.connector
-# import sqlite3
 
 class Warehouse:
     def __init__(self, cursor):

@@ -1,5 +1,4 @@
 import mysql.connector
-# import sqlite3
 
 class Product:
     def __init__(self, cursor):

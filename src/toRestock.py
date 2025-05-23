@@ -1,5 +1,4 @@
 import mysql.connector
-# import sqlite3
 from typing import Any
 
 class ToRestock:
