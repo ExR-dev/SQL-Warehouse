@@ -35,7 +35,9 @@ if __name__ == "__main__":
                     db.close()
                     break
 
-                dbcmd.exec_cmd(db, cmd_in)
+                ret = dbcmd.exec_cmd(db, cmd_in)
+                if ret == "quit":
+                    break
                 print(" ")
         else:
             print("Closing Database")

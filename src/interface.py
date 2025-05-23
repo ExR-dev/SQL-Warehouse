@@ -169,10 +169,7 @@ def menu_restock_schedule(db: database.Database, params = None):
     """
     menu_state = new_menu_state()
 
-    # Fetch all warehouses
-    db.cursor.execute("SELECT id, address FROM warehouse;")
-    rows = db.cursor.fetchall()
-
+    rows = db.toRestock.get_order_list(params)
     menu_state["desc"] = tableUtils.table_to_string(db.toRestock.table_columns, rows)
     
     menu_state["options"].append({ 
@@ -274,7 +271,6 @@ def menu_cmd(db: database.Database, params = None):
             print("\nError: Closing Database...")
             db.close()
             return False
-            break
 
         ret = dbcmd.exec_cmd(db, cmd_in)
         if ret == "quit":

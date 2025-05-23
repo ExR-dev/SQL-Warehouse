@@ -42,6 +42,6 @@ class ToRestock:
         JOIN Product ON Stock.prod_ID = Product.ID
         WHERE Stock.WH_ID = ?
         ORDER BY ToRestock.dateAdded ASC;
-        """, (warehouse_id,))
+        """, (warehouse_id))
 
         return self.cursor.fetchall()
