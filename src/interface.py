@@ -163,6 +163,30 @@ def menu_TODO(db: database.Database, params = None):
     clear()
     return True
 
+def menu_restock_schedule(db: database.Database, params = None):
+    """
+    Submenu for showing that the chosen option is unimplemented
+    """
+    menu_state = new_menu_state()
+
+    # Fetch all warehouses
+    db.cursor.execute("SELECT id, address FROM warehouse;")
+    rows = db.cursor.fetchall()
+
+    menu_state["desc"] = tableUtils.table_to_string(db.toRestock.table_columns, rows)
+    
+    menu_state["options"].append({ 
+        "name": "Back", 
+        "func": go_back,
+        "params": None
+    })
+
+    while menu_state["loop"]:
+        menu_handler(db, menu_state)
+
+    clear()
+    return True
+
 def menu_view_warehouse(db: database.Database, params = None):
     menu_state = new_menu_state()
     menu_state["desc"] = "View data associated with this warehouse\nID: " + str(params[0]) + "\nAddress: " + str(params[1])
@@ -173,10 +197,10 @@ def menu_view_warehouse(db: database.Database, params = None):
         "params": None
     })
 
-    menu_state["options"].append({ 
+    menu_state["options"].append({
         "name": "Restock Schedule",
-        "func": menu_TODO,
-        "params": None
+        "func": menu_restock_schedule,
+        "params": params[0] # warehouse ID
     })
 
     menu_state["options"].append({ 
