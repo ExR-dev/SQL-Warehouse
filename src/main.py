@@ -24,7 +24,7 @@ if __name__ == "__main__":
     if mode == "m":
         import menu
         devmode = menu.main_menu(db)
-    
+
         if devmode:
             print("Entered dev mode")
             while db.is_open():
