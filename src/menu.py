@@ -78,16 +78,17 @@ def warehouse_selection(cursor : MySQLCursor, curr_warehouse : int | None) -> st
     options = []
 
     print("======== Select a Warehouse =========")
-    print("q to abort selection")
-    print("[Warehouse ID, Adresss]")
     cursor.execute("SELECT * FROM warehouse;")
 
     while section_open:
-        for result in cursor:
-            print(result)
+        field_names = [i[0] for i in cursor.description]
+        rows = cursor.fetchall()
+        for row in rows:
             # Adds warehouse ID as a string to option list
-            options.append(str(result[0]))
-
+            options.append(str(row[0]))
+            
+        tableUtils.print_table(field_names, rows)
+        print("q to abort selection")
         try:
             choice = input("> ")
         except:
@@ -262,12 +263,6 @@ def warehouse_update_menu(cursor : MySQLCursor, curr_warehouse : int):
 
         if choice == Warehouse_Update_Menu_Choices.Update_Stock.value:
             warehouse_stock_menu(cursor, curr_warehouse)
-            stock = stock_selection(cursor, curr_warehouse)
-            quantChange = -10
-            try:
-                cursor.execute(f"CALL update_stock_quantity({stock}, {quantChange});")
-            except Exception as e:
-                print(f"SQL Error: {e}")
             section_open = True
 
         if choice == Warehouse_Update_Menu_Choices.New_Stock.value:
@@ -277,15 +272,43 @@ def warehouse_update_menu(cursor : MySQLCursor, curr_warehouse : int):
             pass
 # Not Done
 def warehouse_stock_menu(cursor : MySQLCursor, curr_warehouse : int):
-    # print intro
-
-    # print options
-    print_menu_options(Warehouse_Stock_Menu_Choices)
-
+    section_open = True
     # loop while open
-        # recieve choice
+    while section_open:
+        # print intro
+        print("==== Warehouse Stock Menu ====")
+        print(f"Current Warehouse: {curr_warehouse}")
+        # print options
+        print_menu_options(Warehouse_Stock_Menu_Choices)
 
+        # recieve choice
+        try:
+            choice = input("Choose an option:> ")
+        except:
+            print("Error backing out of section")
+            return
         # handle choice
+        if choice == Warehouse_Stock_Menu_Choices.Back.value:
+            print("Backing out")
+            section_open = False
+
+        if choice == Warehouse_Stock_Menu_Choices.Add_or_Sub_Quantity.value:
+            stock = stock_selection(cursor, curr_warehouse)
+            if stock is None:
+                continue
+
+            number = False
+            while not number:
+                try:
+                    quantity_change = int(input("Quantity change:> "))
+                    number = True
+                except Exception as e:
+                    print(e)
+                    return
+            try:
+                cursor.execute(f"CALL update_stock_quantity({stock}, {quantity_change});")
+            except Exception as e:
+                print(f"SQL Error: {e}")
 
         # return choice
 
