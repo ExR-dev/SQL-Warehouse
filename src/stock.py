@@ -3,7 +3,7 @@ import mysql.connector
 class Stock:
 
     def __init__(self, cursor):
-        def create_procedure(self, procedure_sql : str):
+        def execute_multi_sql(self, procedure_sql : str):
             for _ in self.cursor.execute(procedure_sql, multi=True):
                 pass
 
@@ -64,8 +64,7 @@ class Stock:
         END;
         """
 
-        for _ in self.cursor.execute(schedule_update_sql, multi=True):
-            pass
+        execute_multi_sql(self, schedule_update_sql)
 
         # Creates procedure that selects the total quantity of all product group
         total_quantity_sql = '''
@@ -78,8 +77,7 @@ class Stock:
 	    END
         '''
 
-        for _ in self.cursor.execute(total_quantity_sql, multi=True):
-            pass
+        execute_multi_sql(self, total_quantity_sql)
         
         # Creates a procedure to view all stocks belonging to a specific warehouse
         warehouse_inventory_sql = """
@@ -93,8 +91,7 @@ class Stock:
         END
         """
 
-        for _ in self.cursor.execute(warehouse_inventory_sql, multi=True):
-            pass
+        execute_multi_sql(self, warehouse_inventory_sql)
 
         # Create a procedure to update a stocks quantity relative to its current,
         # using  stock_id, and quantity change
@@ -108,8 +105,7 @@ class Stock:
         END
         '''
 
-        for _ in self.cursor.execute(update_stock_quantity_sql, multi=True):
-            pass
+        execute_multi_sql(self, update_stock_quantity_sql)
 
         # Create a procedure to set a stocks quantity
         set_stock_quantity_sql = '''
@@ -121,7 +117,19 @@ class Stock:
                 WHERE ID = stockID;
         END
         '''
-        create_procedure(self, set_stock_quantity_sql)
+        execute_multi_sql(self, set_stock_quantity_sql)
+
+        update_stock_minQuantity_sql = '''
+        DROP PROCEDURE IF EXISTS update_stock_minQuantity;
+        CREATE PROCEDURE update_stock_minQuantity(IN stockID INTEGER, IN minQuantityChange INTEGER)
+        BEGIN
+            UPDATE Stock
+                SET minQuantity = minQuantity + minQuantityChange
+                WHERE ID = stockID;
+        END
+        '''
+
+        execute_multi_sql(self, update_stock_minQuantity_sql)
 
     def insert(self, values: list[str]):
         """
