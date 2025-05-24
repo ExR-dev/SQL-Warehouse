@@ -210,13 +210,17 @@ def menu_restock_history(db: database.Database, params = None):
     # Stock has prod_ID, Product has description
     # Remove items with no dateOrdered
     db.cursor.execute(f"""
-    SELECT product_desc, dateAdded, dateOrdered FROM
-    (SELECT r.stock_ID, p.description AS product_desc, r.dateAdded, r.dateOrdered
-    FROM ToRestock r
-    INNER JOIN Stock s ON r.stock_ID = s.ID
-    INNER JOIN Product p ON s.prod_ID = p.ID
-    WHERE s.WH_ID = {params}
-    ORDER BY r.dateAdded DESC) AS subquery
+    SELECT 
+        description AS product_desc, dateAdded AS date_added, dateOrdered AS date_ordered, 
+        DATEDIFF(dateOrdered, dateAdded) AS days_elapsed, orderCount AS order_count
+    FROM (
+        SELECT r.stock_ID, p.description, r.dateAdded, r.dateOrdered, r.orderCount
+        FROM ToRestock r
+        INNER JOIN Stock s ON r.stock_ID = s.ID
+        INNER JOIN Product p ON s.prod_ID = p.ID
+        WHERE s.WH_ID = {params}
+        ORDER BY r.dateAdded DESC
+    ) AS subquery
     WHERE dateOrdered IS NOT NULL;
     """)
 
@@ -238,7 +242,7 @@ def menu_restock_history(db: database.Database, params = None):
 
 def menu_view_warehouse(db: database.Database, params = None):
     menu_state = new_menu_state()
-    menu_state["desc"] = "View data associated with this warehouse\nID: " + str(params[0]) + "\nAddress: " + str(params[1])
+    menu_state["desc"] = f"View data associated with warehouse: {params[1]} ({params[0]})"
 
     menu_state["options"].append({ 
         "name": "Stock",

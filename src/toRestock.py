@@ -5,7 +5,7 @@ class ToRestock:
     def __init__(self, cursor):
         self.cursor = cursor
         self.table_name = "ToRestock"
-        self.table_columns = ["ID", "stock_ID", "dateAdded", "dateOrdered"]
+        self.table_columns = ["ID", "stock_ID", "dateAdded", "dateOrdered", "orderCount"]
 
         self.cursor.execute("""
         CREATE TABLE IF NOT EXISTS ToRestock (
@@ -13,9 +13,29 @@ class ToRestock:
             stock_ID INTEGER NOT NULL,
             dateAdded TEXT NOT NULL,
             dateOrdered TEXT,
+            orderCount INTEGER DEFAULT NULL,
             FOREIGN KEY (stock_ID) REFERENCES Stock(ID)
         );
         """)
+
+        upgrade_database_add_orderCount_sql ="""
+        DROP PROCEDURE IF EXISTS upgrade_database_add_orderCount;
+        CREATE PROCEDURE upgrade_database_add_orderCount()
+        BEGIN
+            -- add a column safely
+            IF NOT EXISTS( (SELECT * FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE()
+                    AND COLUMN_NAME='orderCount' AND TABLE_NAME='ToRestock') ) THEN
+                ALTER TABLE ToRestock 
+                ADD orderCount INTEGER DEFAULT NULL
+                AFTER dateOrdered;
+            END IF;
+        END;
+        CALL upgrade_database_add_orderCount();
+        """
+
+        for _ in self.cursor.execute(upgrade_database_add_orderCount_sql, multi=True):
+            pass
+
 
         # Create a procedure to view all restock associated to a specific warehouse
         warehouse_torestock_list_sql = '''
@@ -37,12 +57,15 @@ class ToRestock:
         DROP PROCEDURE IF EXISTS get_order_list;
         CREATE PROCEDURE get_order_list(IN warehouse_id INT)
         BEGIN
-            SELECT ToRestock.ID, ToRestock.dateAdded, ToRestock.dateOrdered, Stock.quantity, Product.description, Supplier.contact
+            SELECT Stock.ID AS stock_ID, Product.description AS product_desc, 
+                   Supplier.address AS supplier_name, Supplier.contact AS supplier_contact, 
+                   Stock.quantity AS curr_stock_count, Stock.minQuantity - Stock.quantity AS min_order_count, 
+                   ToRestock.dateAdded AS date_added
             FROM ToRestock
             JOIN Stock ON ToRestock.stock_ID = Stock.ID
             JOIN Product ON Stock.prod_ID = Product.ID
             JOIN Supplier ON Product.sup_ID = Supplier.ID
-            WHERE Stock.WH_ID = warehouse_id
+            WHERE Stock.WH_ID = warehouse_id AND ToRestock.dateOrdered IS NULL
             ORDER BY ToRestock.dateAdded ASC;
         END
         '''

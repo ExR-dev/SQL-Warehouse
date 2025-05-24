@@ -241,26 +241,42 @@ def cmd_devDB(db: database.Database, cmd: str, params: list[str]) -> bool:
         for ret in db.cursor.execute(exec_str, multi=True):
             pass
 
+        # Modify some existing ToRestock entries to move their dateAdded back in time
         exec_str = """
-        INSERT INTO ToRestock (stock_ID, dateAdded, dateOrdered) VALUES
-        (2, '2022-05-03', '2023-12-04'),
-        (10, '2020-11-01', '2021-12-01'),
-        (3, '2023-10-02', '2023-10-14'),
-        (7, '2023-10-02', '2023-10-14'),
-        (1, '2020-01-01', '2025-04-13'),
-        (18, '2023-10-20', '2023-12-23'),
-        (18, '2023-12-25', '2024-12-20'),
-        (19, '2019-02-19', '2019-02-21'),
-        (19, '2019-02-22', '2019-02-23'),
-        (19, '2019-02-24', '2020-06-02'),
-        (19, '2024-08-17', '2024-08-20'),
-        (8, '2021-07-30', '2021-08-07'),
-        (20, '2023-10-22', '2023-10-22');
+        UPDATE ToRestock SET dateAdded = '2024-09-04' WHERE stock_ID = 2;
+        UPDATE ToRestock SET dateAdded = '2025-01-24' WHERE stock_ID = 4;
+        UPDATE ToRestock SET dateAdded = '2025-04-01' WHERE stock_ID = 7;
+        UPDATE ToRestock SET dateAdded = '2023-12-31' WHERE stock_ID = 8;
+        UPDATE ToRestock SET dateAdded = '2022-08-09' WHERE stock_ID = 10;
+        UPDATE ToRestock SET dateAdded = '2025-04-01' WHERE stock_ID = 16;
+        UPDATE ToRestock SET dateAdded = '2025-05-23' WHERE stock_ID = 20;
+        UPDATE ToRestock SET dateAdded = '2020-10-15' WHERE stock_ID = 26;
         """
 
         for ret in db.cursor.execute(exec_str, multi=True):
             pass
 
+        exec_str = """
+        INSERT INTO ToRestock (stock_ID, dateAdded, dateOrdered, orderCount) VALUES
+        (2, '2022-05-03', '2023-12-04', 100),
+        (10, '2020-11-01', '2021-12-01', 400),
+        (3, '2023-10-02', '2023-10-14', 2000),
+        (7, '2023-10-02', '2023-10-14', 2),
+        (1, '2020-01-01', '2025-04-13', 600),
+        (18, '2023-10-20', '2023-12-23', 8),
+        (18, '2023-12-25', '2024-12-20', 90),
+        (19, '2019-02-19', '2019-02-21', 1),
+        (19, '2019-02-22', '2019-02-23', 1500),
+        (19, '2019-02-24', '2020-06-02', 9999),
+        (19, '2024-08-17', '2024-08-20', 300),
+        (8, '2021-07-30', '2021-08-07', 100),
+        (20, '2023-10-22', '2023-10-22', 12);
+        """
+
+        for ret in db.cursor.execute(exec_str, multi=True):
+            pass
+
+        print("Testing Database initialized successfully.")
     else:
         print("Aborted.")
     
