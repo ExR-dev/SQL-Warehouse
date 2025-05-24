@@ -1,7 +1,12 @@
 import mysql.connector
 
 class Stock:
+
     def __init__(self, cursor):
+        def create_procedure(self, procedure_sql : str):
+            for _ in self.cursor.execute(procedure_sql, multi=True):
+                pass
+
         self.cursor = cursor
         self.table_name = "Stock"
         self.table_columns = ["ID", "quantity", "prod_ID", "WH_ID", "minQuantity"]
@@ -106,6 +111,17 @@ class Stock:
         for _ in self.cursor.execute(update_stock_quantity_sql, multi=True):
             pass
 
+        # Create a procedure to set a stocks quantity
+        set_stock_quantity_sql = '''
+        DROP PROCEDURE IF EXISTS set_stock_quantity;
+        CREATE PROCEDURE set_stock_quantity(IN stockID INTEGER, IN newQuantity INTEGER)
+        BEGIN
+            UPDATE stock
+                SET quantity = newQuantity
+                WHERE ID = stockID;
+        END
+        '''
+        create_procedure(self, set_stock_quantity_sql)
 
     def insert(self, values: list[str]):
         """
