@@ -88,6 +88,7 @@ def get_input():
 
 # Menu
 # Utility
+class _Break(Exception): pass
 def menu_handler(db: database.Database, menu_state: dict):
     if menu_state["reprint"]:
         clear()
@@ -113,23 +114,39 @@ def menu_handler(db: database.Database, menu_state: dict):
     user_input = get_input()
     menu_state["reprint"] = (False if user_input == "none" else True)
 
-    match user_input:
-        case "select":
-            selected_option = menu_state["options"][menu_state["select_id"]]
-            selected_func = selected_option["func"]
-            option_params = selected_option["params"]
+    try:
+        select_id = menu_state["select_id"]
+        menu_options = menu_state["options"]
+        options_length = len(menu_options)
 
-            if not selected_func(db, option_params):
+        match user_input:
+            case "select":
+                if options_length <= select_id:
+                    raise _Break()
+
+                selected_option = menu_options[select_id]
+                selected_func = selected_option["func"]
+                option_params = selected_option["params"]
+
+                if not selected_func(db, option_params):
+                    menu_state["loop"] = False
+
+            case "up":
+                if options_length <= 0:
+                    raise _Break()
+                
+                menu_state["select_id"] = (select_id - 1) % options_length
+
+            case "down": # Down
+                if options_length <= 0:
+                    raise _Break()
+                
+                menu_state["select_id"] = (select_id + 1) % options_length
+
+            case "back": # Escape
                 menu_state["loop"] = False
-
-        case "up":
-            menu_state["select_id"] = (menu_state["select_id"] - 1) % len(menu_state["options"])
-
-        case "down": # Down
-            menu_state["select_id"] = (menu_state["select_id"] + 1) % len(menu_state["options"])
-
-        case "back": # Escape
-            menu_state["loop"] = False
+    except _Break:
+        pass
 
 def new_menu_state():
     return {

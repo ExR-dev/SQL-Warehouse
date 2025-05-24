@@ -14,7 +14,8 @@ class Stock:
             WH_ID INTEGER NOT NULL,
             minQuantity INTEGER NOT NULL,
             FOREIGN KEY (prod_ID) REFERENCES Product(ID),
-            FOREIGN KEY (WH_ID) REFERENCES Warehouse(ID)
+            FOREIGN KEY (WH_ID) REFERENCES Warehouse(ID),
+            UNIQUE KEY prod_wh_key (prod_ID, WH_ID)
         );
         """)
 

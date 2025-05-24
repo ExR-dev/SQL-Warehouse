@@ -17,6 +17,7 @@ def cmd_help(db: database.Database, cmd: str, params: list[str]) -> bool:
         "- sql <query> \nExecute a raw SQL query",
         "- insert <table> <values> \nInsert a row into a table",
         "- drop [<tables>] \nDrop the entire database or specific tables",
+        "- devDB \nDrop the entire database and create a new one with pre-defined data",
         # ...
     )
 
@@ -136,6 +137,135 @@ def cmd_drop(db: database.Database, cmd: str, params: list[str]) -> bool:
             print(f"Table {table} dropped.")
     return True
 
+def cmd_devDB(db: database.Database, cmd: str, params: list[str]) -> bool:
+    # Check if the string executes this command
+    passed = False
+    if (cmd == "devdb"):
+        passed = True
+
+    if not passed:
+        return False
+    
+    confirm = False
+    if not confirm:
+        print("Performing this operation will drop the database and initialize a standardized database for testing purposes.")
+        print("All data currently stored in the database will be lost forever!")
+        print("Are you sure you want to do this? (y/n)")
+        while not confirm:
+            confirm_in = input().lower()
+            if confirm_in == "y":
+                confirm = True
+            elif confirm_in == "n":
+                break
+
+    if confirm:
+        db.cursor.execute(f"DROP DATABASE IF EXISTS {db.db_name};")
+        #db.close()
+        db.init()
+
+        exec_str = """
+        INSERT INTO Warehouse (address) VALUES 
+        ('Karlskrona'),
+        ('Karlshamn'),
+        ('Stockholm North'),
+        ('Stockholm West'),
+        ('Malmö'),
+        ('Gothenburg');
+        """
+        for ret in db.cursor.execute(exec_str, multi=True):
+            pass
+
+        exec_str = """
+        INSERT INTO Supplier (address, contact) VALUES 
+        ('Ericsson', '+46722185976'),
+        ('Volvo Cars', 'volvo.cars@email.de'),
+        ('Steam Software', 'gaben@valvesoftware.com'),
+        ('Fortum', 'Carrier Pigeon'),
+        ('IKEA', '+46752345056'),
+        ('Raccoon', 'Any Trashcan');
+        """
+        for ret in db.cursor.execute(exec_str, multi=True):
+            pass
+
+        exec_str = """
+        INSERT INTO Product (sup_ID, description) VALUES 
+        (1, 'Telephone'),
+        (2, 'EX30'),
+        (2, 'XC60'),
+        (2, 'V60'),
+        (3, 'Key'),
+        (1, 'Software'),
+        (1, '5G'),
+        (5, 'Table'),
+        (5, 'Chair'),
+        (5, 'Meatballs'),
+        (5, 'Blåhaj'),
+        (6, 'Rabies'),
+        (6, 'Trash'),
+        (3, 'Half-Life 3');
+        """
+
+        for ret in db.cursor.execute(exec_str, multi=True):
+            pass
+
+        exec_str = """
+        INSERT INTO Stock (WH_ID, prod_ID, quantity, minQuantity) VALUES 
+        (1, 1, 450, 100),
+        (1, 6, 999, 1000),
+        (5, 6, 4264, 1000),
+        (1, 7, 4, 5),
+        (3, 7, 9999999, 100),
+        (4, 7, 99999, 70),
+        (5, 7, 30, 50),
+        (3, 6, 4842, 100000),
+        (6, 1, 50, 420),
+        (4, 1, 6, 999994),
+        (5, 3, 0, 500),
+        (6, 3, 749, 750),
+        (1, 3, 80, 10),
+        (4, 12, 123456, 0),
+        (3, 12, 77777, 1),
+        (4, 13, 75766, 99999),
+        (3, 13, 99998, 99999),
+        (5, 11, 5, 0),
+        (6, 11, 8999, 9999),
+        (3, 11, 540, 999),
+        (3, 1, 1000, 500),
+        (3, 2, 200, 100),
+        (1, 2, 36, 20),
+        (4, 2, 101, 80),
+        (3, 10, 20, 10),
+        (6, 10, 10, 20);
+        """
+
+        for ret in db.cursor.execute(exec_str, multi=True):
+            pass
+
+        exec_str = """
+        INSERT INTO ToRestock (stock_ID, dateAdded, dateOrdered) VALUES
+        (2, '2022-05-03', '2023-12-04'),
+        (10, '2020-11-01', '2021-12-01'),
+        (3, '2023-10-02', '2023-10-14'),
+        (7, '2023-10-02', '2023-10-14'),
+        (1, '2020-01-01', '2025-04-13'),
+        (18, '2023-10-20', '2023-12-23'),
+        (18, '2023-12-25', '2024-12-20'),
+        (19, '2019-02-19', '2019-02-21'),
+        (19, '2019-02-22', '2019-02-23'),
+        (19, '2019-02-24', '2020-06-02'),
+        (19, '2024-08-17', '2024-08-20'),
+        (8, '2021-07-30', '2021-08-07'),
+        (20, '2023-10-22', '2023-10-22');
+        """
+
+        for ret in db.cursor.execute(exec_str, multi=True):
+            pass
+
+    else:
+        print("Aborted.")
+    
+    return True
+
 def cmd_null(db: database.Database, cmd: str, params: list[str]) -> bool:
     print("Unknown command. Try \"help\" for a list of available commands.")
     return True
@@ -201,6 +331,7 @@ def exec_cmd(db: database.Database, cmd_in: str) -> None:
         cmd_sql,
         cmd_insert,
         cmd_drop,
+        cmd_devDB,
         # ...
         cmd_null
     ]

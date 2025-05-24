@@ -10,12 +10,7 @@ import toRestock
 
 
 class Database:
-    def __init__(self, db_name: str):
-        """
-        Initialize the database connection and create tables if they don't exist.
-
-        :param db_name: Name of the database file
-        """
+    def init(self):
         try:
             self.conn = mysql.connector.connect(
                 host='localhost',
@@ -35,9 +30,6 @@ class Database:
                 print("MySQL connection is closed")
 
         self.open = True
-        self.db_name = db_name
-
-
         self.cursor = self.conn.cursor()
 
         self.cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.db_name};")
@@ -48,6 +40,21 @@ class Database:
         self.product = product.Product(self.cursor)
         self.stock = stock.Stock(self.cursor)
         self.toRestock = toRestock.ToRestock(self.cursor)
+
+    def close(self):
+        if self.open:
+            self.conn.close()
+            self.open = False
+
+
+    def __init__(self, db_name: str):
+        """
+        Initialize the database connection and create tables if they don't exist.
+
+        :param db_name: Name of the database file
+        """
+        self.db_name = db_name
+        self.init()
 
     def __del__(self):
         """
@@ -136,11 +143,6 @@ class Database:
         Commit the current transaction.
         """
         self.conn.commit()
-
-    def close(self):
-        if self.open:
-            self.conn.close()
-        self.open = False
 
     def is_open(self) -> bool:
         return self.open
