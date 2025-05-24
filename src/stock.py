@@ -90,6 +90,21 @@ class Stock:
         for _ in self.cursor.execute(warehouse_inventory_sql, multi=True):
             pass
 
+        # Create a procedure to update a stocks quantity relative to its current,
+        # using  stock_id, and quantity change
+        update_stock_quantity_sql ='''
+        DROP PROCEDURE IF EXISTS update_stock_quantity;
+        CREATE PROCEDURE update_stock_quantity(IN stockID INTEGER, IN quantChange INTEGER)
+        BEGIN
+            UPDATE stock
+                SET quantity = quantity + quantChange
+                WHERE ID = stockID;
+        END
+        '''
+
+        for _ in self.cursor.execute(update_stock_quantity_sql, multi=True):
+            pass
+
 
     def insert(self, values: list[str]):
         """

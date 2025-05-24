@@ -1,6 +1,6 @@
 import mysql.connector
 from database import Database
-# from mysql.connector.connection import MySQLConnection
+import tableUtils
 from mysql.connector.cursor import MySQLCursor
 from mysql.connector import Error
 from enum import Enum
@@ -220,10 +220,9 @@ def warehouse_view_menu(cursor : MySQLCursor, curr_warehouse : int):
             try:    
                 for result in cursor.execute(sql_torestock_needed, multi=True):
                     if result.with_rows:
+                        field_names = [i[0] for i in result.description]
                         rows = cursor.fetchall()
-                        for row in rows:
-                            empty = False
-                            print(row)
+                        tableUtils.print_table(field_names, rows)
                 if empty:
                     print("Empty")
 
@@ -263,6 +262,12 @@ def warehouse_update_menu(cursor : MySQLCursor, curr_warehouse : int):
 
         if choice == Warehouse_Update_Menu_Choices.Update_Stock.value:
             warehouse_stock_menu(cursor, curr_warehouse)
+            stock = stock_selection(cursor, curr_warehouse)
+            quantChange = -10
+            try:
+                cursor.execute(f"CALL update_stock_quantity({stock}, {quantChange});")
+            except Exception as e:
+                print(f"SQL Error: {e}")
             section_open = True
 
         if choice == Warehouse_Update_Menu_Choices.New_Stock.value:
