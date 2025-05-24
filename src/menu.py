@@ -406,6 +406,39 @@ def warehouse_stock_menu(cursor : MySQLCursor, curr_warehouse : int):
             except Exception as e:
                 print(f"SQL Error: {e}")
 
+        if choice == Warehouse_Stock_Menu_Choices.Set_Minimum_Quantity.value:
+            stock = stock_selection(cursor, curr_warehouse)
+            if stock is None:
+                continue
+
+            number = False
+            while not number:
+                clear_console()
+                print(f"Selected stock: {stock}")
+                try:
+                    new_minQuantity = input("New Minumum Quantity:> ")
+                except:
+                    return
+
+                try: 
+                    new_minQuantity = int(new_minQuantity)
+                    number = True
+                except:
+                    clear_console()
+                    print("Please input a whole number")
+                    # Stay on view result untill input has been given
+                    try:
+                        input("Press \"ENTER\" to continue...")
+                    except:
+                        print("\nError: Closing Menu")
+                        section_open = False
+                    continue
+
+            try:
+                cursor.execute(f"CALL set_stock_minQuantity({stock}, {new_minQuantity});")
+            except Exception as e:
+                print(f"SQL Error: {e}")
+
 def warehouse_menu(cursor : MySQLCursor, curr_warehouse : int):
     section_open = True
 

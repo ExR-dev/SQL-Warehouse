@@ -163,6 +163,18 @@ class Stock:
 
         execute_multi_sql(self, update_stock_minQuantity_sql)
 
+        set_stock_minQuantity_sql = '''
+        DROP PROCEDURE IF EXISTS set_stock_minQuantity;
+        CREATE PROCEDURE set_stock_minQuantity(IN stockID INTEGER, IN newMinQuantity INTEGER)
+        BEGIN
+            UPDATE stock
+                SET minQuantity = newMinQuantity
+                WHERE ID = stockID;
+        END
+        '''
+
+        execute_multi_sql(self, set_stock_minQuantity_sql)
+
     def insert(self, values: list[str]):
         """
         Insert a new stock entry into the Stock table.
@@ -176,3 +188,4 @@ class Stock:
             """, values)
         else:
             print("Error: inserting to stock expected values (quantity [int], prod_ID [int], WH_ID [int], minQuantity [int])")
+
