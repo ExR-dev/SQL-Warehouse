@@ -82,7 +82,7 @@ class ToRestock:
         if len(values) == 1:
             self.cursor.execute("""
             INSERT INTO ToRestock (stock_ID, dateAdded)
-            VALUES (%s, CURDATE());
+            VALUES (%s, NOW());
             """, values)
         else:
             print("Error: inserting to ToRestock expected values (stock_ID [int])")

@@ -11,7 +11,7 @@ if os.name == 'nt':
 else:
     clear = lambda: os.system('clear')
 
-def print_separator(separator="-", prefix="", suffix="", width=60):
+def print_separator(separator="=", prefix="", suffix="", width=80):
     print(prefix+(separator*width)+suffix)
 
 
@@ -55,11 +55,12 @@ def get_input():
         except: 
             is_held = False
         
-        # Skip sustained key presses
         if is_held: 
-            continue
-        
-        held_keys.append(key_in.scan_code)
+            #continue # Skip sustained key presses
+            pass 
+        else:
+            held_keys.append(key_in.scan_code)
+
         keep_event = True
 
     flush_input()
@@ -97,14 +98,14 @@ def menu_handler(db: database.Database, menu_state: dict):
         # Print the menu chain
         print(" > ".join(menu_chain + [menu_state["name"]]))
 
+        print_separator()
+
         desc = menu_state["desc"]
         if desc != None and desc != "":
             # Print menu description
-            print_separator(suffix="")
             print(desc)
-            pass
+            print_separator(separator="—")
 
-        print_separator(suffix="")
         # Print the available commands
         for option_id in range(len(menu_state["options"])):
             option = menu_state["options"][option_id]
