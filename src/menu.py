@@ -1,4 +1,4 @@
-import mysql.connector
+import os
 from database import Database
 import tableUtils
 from mysql.connector.cursor import MySQLCursor
@@ -29,14 +29,23 @@ class Warehouse_Update_Menu_Choices(Enum):
     
 class Warehouse_Stock_Menu_Choices(Enum):
     Back = "0"
-    Add_or_Sub_Quantity = "1"
+    Change_Quantity = "1"
     Set_Quantity = "2"
-    Add_or_Sub_Minimum_Quantity = "3"
+    Change_Minimum_Quantity = "3"
     Set_Minimum_Quantity = "4"
+
+def clear_console():
+    # Clears console for both windows and linux
+    os.system('cls' if os.name == "nt" else 'clear')
 
 def print_menu_options(menu_class : Enum):
     for option in menu_class:
         print(f"{option.value}. {option.name.capitalize()}")
+
+def get_field_names(table_description : tuple) -> list:
+    # Creates a list of column names. Index 0 in column description is name of column
+    field_names = [column[0] for column in table_description]
+    return field_names
 
 def main_menu(db : Database) -> bool:
     menu_open = True
@@ -46,10 +55,10 @@ def main_menu(db : Database) -> bool:
 
 
     while menu_open:
-        print("\n==== Warehouse Inventory Main Menu ====")
+        clear_console()
+        print("==== Main Menu ====")
         print(f"Current warehouse: {curr_warehouse}")
         print_menu_options(Main_Choices)
-
         try:
             choice = input("Choose an option:> ")
         except:
@@ -57,18 +66,23 @@ def main_menu(db : Database) -> bool:
             menu_open = False
 
         if choice == Main_Choices.exit.value:
+            clear_console()
             print("Closing Menu")
             menu_open = False
 
+        elif choice == Main_Choices.Select_Warehouse.value:
+            curr_warehouse = warehouse_selection(cursor, curr_warehouse)
+            if curr_warehouse is None:
+                continue
+            warehouse_menu(cursor, curr_warehouse)
+            menu_open = True
+
         elif choice == Main_Choices.devmode.value:
+            clear_console()
             print("Entering development mode")
             menu_open = False
             devmode = True
 
-        elif choice == Main_Choices.Select_Warehouse.value:
-            curr_warehouse = warehouse_selection(cursor, curr_warehouse)
-            warehouse_menu(cursor, curr_warehouse)
-            menu_open = True
 
     return devmode
 
@@ -76,17 +90,18 @@ def warehouse_selection(cursor : MySQLCursor, curr_warehouse : int | None) -> st
     # Query the warehouse table print out as an option list move to next step in menu
     section_open = True
     options = []
+    clear_console()
 
-    print("======== Select a Warehouse =========")
     cursor.execute("SELECT * FROM warehouse;")
+    field_names = get_field_names(cursor.description)
+    rows = cursor.fetchall()
+    for row in rows:
+        # Adds warehouse ID as a string to option list
+        options.append(str(row[0]))
 
     while section_open:
-        field_names = [i[0] for i in cursor.description]
-        rows = cursor.fetchall()
-        for row in rows:
-            # Adds warehouse ID as a string to option list
-            options.append(str(row[0]))
-            
+        clear_console()
+        print("======== Select a Warehouse =========")
         tableUtils.print_table(field_names, rows)
         print("q to abort selection")
         try:
@@ -98,7 +113,7 @@ def warehouse_selection(cursor : MySQLCursor, curr_warehouse : int | None) -> st
 
         if choice == "q":
             try:
-                confirm = input("Aborting warehouse selection do you wish to keep currently selected warehouse? (y/n)\n> ").lower()
+                confirm = input("Aborting warehouse selection do you wish to keep currently selected warehouse? (y or continue)\n> ").lower()
             except:
                 print("\nError closing section no warehouse will be selected")
                 choice = None
@@ -121,12 +136,9 @@ def warehouse_selection(cursor : MySQLCursor, curr_warehouse : int | None) -> st
 
     return choice
 
-def stock_selection(cursor : MySQLCursor, curr_warehouse : int | None):
+def stock_selection(cursor : MySQLCursor, curr_warehouse : int | None) -> str:
     section_open = True
     options =[]
-    print("======== Select a Stock =========")
-    print("q to abort selection")
-    print("[Stock ID, Quantity, Description]")
     if curr_warehouse is None:
         cursor.execute("SELECT * FROM Stock;")
         results = [cursor.fetchall()] # Match stored_results() style
@@ -134,13 +146,21 @@ def stock_selection(cursor : MySQLCursor, curr_warehouse : int | None):
     else:
         results = cursor.execute(f"CALL warehouse_inventory({curr_warehouse});",multi=True)
 
-    while section_open:
-        for result_set in results:
-            for row in result_set:
-                print(row)
+    
+    for result_set in results:
+        if result_set.with_rows:
+            field_names = get_field_names(cursor.description)
+            rows = cursor.fetchall()
+            for row in rows:
                 # Adds Stock ID as a string to option list
                 options.append(str(row[0]))
+    clear_console()
 
+    while section_open:
+        print("======== Select a Stock =========")
+        tableUtils.print_table(field_names, rows)
+        print("q to abort selection")
+    
         try:
             choice = input("> ")
         except:
@@ -158,7 +178,15 @@ def stock_selection(cursor : MySQLCursor, curr_warehouse : int | None):
             section_open = False
         
         else:
+            clear_console()
             print("Unkown stock ID, try again")
+            # Stay on view result untill input has been given
+            try:
+                input("Press \"ENTER\" to continue...")
+            except:
+                print("\nError: Closing Menu")
+                section_open = False
+            continue
 
     return choice
 
@@ -166,6 +194,7 @@ def warehouse_view_menu(cursor : MySQLCursor, curr_warehouse : int):
     section_open = True
 
     while section_open:
+        clear_console()
         print("==== Warehouse View Menu ====")
         print(f"Current warehouse: {curr_warehouse}")
         print_menu_options(Warehouse_View_Menu_Choices)
@@ -182,71 +211,56 @@ def warehouse_view_menu(cursor : MySQLCursor, curr_warehouse : int):
         
         elif choice == Warehouse_View_Menu_Choices.Inventory.value:
             sql_inventory_view = f'''CALL warehouse_inventory({curr_warehouse});'''
-            empty = True
+            clear_console()
             print("==== Warehouse Inventory ====")
-            print("[Product ID, Quantity, Description]")
 
             try:    
                 for result in cursor.execute(sql_inventory_view, multi=True):
                     if result.with_rows:
-                        empty = False
+                        field_names = get_field_names(cursor.description)
                         rows = cursor.fetchall()
-                        for row in rows:
-                            empty = False
-                            print(row)
-                if empty:
-                    print("Empty")
+                        tableUtils.print_table(field_names, rows)
 
             except Exception as e:
                 print("Error: Please Conntact system admin")
                 print(f"SQL Error: {e}")
-                
-            done = False
-            while not done:
-                try:
-                    confirm = input("Continue? (y/n): ")
-                except:
-                    print("\nError: Closing Menu")
-                    section_open = False
-                
-                if confirm == "y":
-                    done = True
+
+            # Stay on view result untill input has been given
+            try:
+                input("Press \"ENTER\" to continue...")
+            except:
+                print("\nError: Closing Menu")
+                section_open = False
 
         elif choice == Warehouse_View_Menu_Choices.Retock_Needed.value:
             sql_torestock_needed =f'''CALL warehouse_torestock_list({curr_warehouse});'''
-            empty = True
+            clear_console()
             print("==== Warehouse Restock List ====")
-            print("[Restock ID, Product ID, Date Added]")
 
             try:    
                 for result in cursor.execute(sql_torestock_needed, multi=True):
                     if result.with_rows:
-                        field_names = [i[0] for i in result.description]
+                        field_names = get_field_names(cursor.description)
                         rows = cursor.fetchall()
                         tableUtils.print_table(field_names, rows)
-                if empty:
-                    print("Empty")
 
             except Exception as e:
                 print("Error: Please Conntact system admin")
                 print(f"SQL Error: {e}")
 
-            done = False
-            while not done:
-                try:
-                    confirm = input("Continue? (y/n): ")
-                except:
-                    print("\nError: Closing Menu")
-                    section_open = False
-                
-                if confirm == "y":
-                    done = True
+            # Stay on view result untill input has been given
+            try:
+                input("Press \"ENTER\" to continue...")
+            except:
+                print("\nError: Closing Menu")
+                section_open = False
 
 # Not Done Currently working on
 def warehouse_update_menu(cursor : MySQLCursor, curr_warehouse : int):
     section_open = True
     
     while section_open:
+        clear_console()
         print("==== Warehouse Update Menu ====")
         print(f"Current Warehouse: {curr_warehouse}")
         print_menu_options(Warehouse_Update_Menu_Choices)
@@ -275,6 +289,7 @@ def warehouse_stock_menu(cursor : MySQLCursor, curr_warehouse : int):
     section_open = True
     # loop while open
     while section_open:
+        clear_console()
         # print intro
         print("==== Warehouse Stock Menu ====")
         print(f"Current Warehouse: {curr_warehouse}")
@@ -292,19 +307,34 @@ def warehouse_stock_menu(cursor : MySQLCursor, curr_warehouse : int):
             print("Backing out")
             section_open = False
 
-        if choice == Warehouse_Stock_Menu_Choices.Add_or_Sub_Quantity.value:
+        if choice == Warehouse_Stock_Menu_Choices.Change_Quantity.value:
             stock = stock_selection(cursor, curr_warehouse)
             if stock is None:
                 continue
 
             number = False
             while not number:
+                clear_console()
+                print(f"Selected stock: {stock}")
                 try:
-                    quantity_change = int(input("Quantity change:> "))
-                    number = True
-                except Exception as e:
-                    print(e)
+                    quantity_change = input("Quantity change:> ")
+                except:
                     return
+
+                try: 
+                    quantity_change = int(quantity_change)
+                    number = True
+                except:
+                    clear_console()
+                    print("Please input a whole number")
+                    # Stay on view result untill input has been given
+                    try:
+                        input("Press \"ENTER\" to continue...")
+                    except:
+                        print("\nError: Closing Menu")
+                        section_open = False
+                    continue
+
             try:
                 cursor.execute(f"CALL update_stock_quantity({stock}, {quantity_change});")
             except Exception as e:
@@ -316,6 +346,7 @@ def warehouse_menu(cursor : MySQLCursor, curr_warehouse : int):
     section_open = True
 
     while section_open:
+        clear_console()
         print("==== Warehouse Menu ====")
         print(f"Current warehouse: {curr_warehouse}")
         
