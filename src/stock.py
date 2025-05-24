@@ -59,7 +59,37 @@ class Stock:
         END;
         """
 
-        for _ in self.cursor.execute(schedule_update_sql, multi=True):
+        # Create a trigger to update the ToRestock table when stock is updated
+        # Looks through the toRestock table to see if an active restock order exists for the stock.
+        # If it does, it updates the dateOrdered to the current date and the orderCount to the change in quantity.
+        # If it doesn't, it adds a new restock order and completes it immediately.
+        complete_schedule_sql = """
+        DROP TRIGGER IF EXISTS complete_schedule;
+        CREATE TRIGGER complete_schedule
+        AFTER UPDATE ON Stock
+        FOR EACH ROW
+        BEGIN
+            IF NEW.quantity > OLD.quantity THEN
+                -- Check if there is an existing order for this stock that has not been ordered yet
+                IF EXISTS (
+                    SELECT 1
+                    FROM ToRestock
+                    WHERE stock_ID = NEW.ID AND dateOrdered IS NULL
+                ) THEN
+                    -- Update the existing order with the new quantity difference
+                    UPDATE ToRestock
+                    SET dateOrdered = CURDATE(), orderCount = (NEW.quantity - OLD.quantity)
+                    WHERE stock_ID = NEW.ID AND dateOrdered IS NULL;
+                ELSE
+                    -- Create a new order for this stock
+                    INSERT INTO ToRestock (stock_ID, dateAdded, dateOrdered, orderCount)
+                    VALUES (NEW.ID, CURDATE(), CURDATE(), (NEW.quantity - OLD.quantity));
+                END IF;
+            END IF;
+        END;
+        """
+
+        for _ in self.cursor.execute(complete_schedule_sql, multi=True):
             pass
 
         # Creates procedure that selects the total quantity of all product group

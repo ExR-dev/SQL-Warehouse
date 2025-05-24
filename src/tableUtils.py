@@ -1,4 +1,44 @@
 
+def table_to_string_no_header(rows):
+    """
+    Converts the contents of a table to a string, formatted as a table.
+    This function does not include column names in the output.
+
+    :param rows: Uniformly nested list of data
+    """
+    table_str = ""
+    column_lengths = []
+    
+    for row in rows:
+        column_i = 0
+        for column in row:
+            if column_i >= len(column_lengths):
+                column_lengths.append(len(str(column))+2)
+            else:
+                column_lengths[column_i] = max(column_lengths[column_i], len(str(column))+2)
+            column_i += 1
+
+    table_length = 1
+    for column_length in column_lengths:
+        table_length += column_length + 1
+
+    table_str += "\n" + ("—"*table_length) + "\n"
+
+    for row in rows:
+        table_str += "|"
+        column_i = 0
+        for column in row:
+            data_string = str(column)
+
+            column_length = column_lengths[column_i]
+            data_length = len(data_string)
+            padding = max(0, column_length - data_length - 1)
+            table_str += " " + data_string + (" "*padding) + "|"
+            column_i += 1
+        table_str += "\n" + ("—"*table_length) + "\n"
+
+    return table_str.removesuffix("\n")
+
 def table_to_string(column_names: list[str], rows):
     """
     Converts the contents of a table to a string, formatted as a table.

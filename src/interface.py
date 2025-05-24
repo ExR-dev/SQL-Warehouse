@@ -11,8 +11,8 @@ if os.name == 'nt':
 else:
     clear = lambda: os.system('clear')
 
-def print_separator(separator="-", prefix="", suffix=""):
-    print(prefix+(separator*60)+suffix)
+def print_separator(separator="-", prefix="", suffix="", width=60):
+    print(prefix+(separator*width)+suffix)
 
 
 # User Input
@@ -86,12 +86,16 @@ def get_input():
     return "none"
 
 
-# Menu
-# Utility
+# Menu Utility
+menu_chain = []
 class _Break(Exception): pass
+
 def menu_handler(db: database.Database, menu_state: dict):
     if menu_state["reprint"]:
         clear()
+
+        # Print the menu chain
+        print(" > ".join(menu_chain + [menu_state["name"]]))
 
         desc = menu_state["desc"]
         if desc != None and desc != "":
@@ -128,8 +132,10 @@ def menu_handler(db: database.Database, menu_state: dict):
                 selected_func = selected_option["func"]
                 option_params = selected_option["params"]
 
+                menu_chain.append(menu_state["name"])
                 if not selected_func(db, option_params):
                     menu_state["loop"] = False
+                menu_chain.pop()
 
             case "up":
                 if options_length <= 0:
@@ -153,6 +159,7 @@ def new_menu_state():
         "loop": True,
         "select_id": 0,
         "reprint": True,
+        "name": "UNDEFINED",
         "desc": "",
         "options": [ ]
     }
@@ -161,27 +168,10 @@ def go_back(db: database.Database, params = None):
     return False
 
 # Sub Menus
-def menu_TODO(db: database.Database, params = None):
-    """
-    Submenu for showing that the chosen option is unimplemented
-    """
-    menu_state = new_menu_state()
-    menu_state["desc"] = "This option has not yet been implemented!"
-    
-    menu_state["options"].append({ 
-        "name": "Back", 
-        "func": go_back,
-        "params": None
-    })
-
-    while menu_state["loop"]:
-        menu_handler(db, menu_state)
-
-    clear()
-    return True
-
+# View
 def menu_restock_schedule(db: database.Database, params = None):
     menu_state = new_menu_state()
+    menu_state["name"] = "Restock Schedule"
 
     query_str = f"CALL get_order_list({params});"
     for ret in db.cursor.execute(query_str, multi=True):
@@ -204,6 +194,7 @@ def menu_restock_schedule(db: database.Database, params = None):
 
 def menu_restock_history(db: database.Database, params = None):
     menu_state = new_menu_state()
+    menu_state["name"] = "Restock History"
 
     # Fetch full restock history of current warehouse
     # toRestock has stock_ID, Stock has WH_ID
@@ -242,7 +233,7 @@ def menu_restock_history(db: database.Database, params = None):
 
 def menu_view_warehouse(db: database.Database, params = None):
     menu_state = new_menu_state()
-    menu_state["desc"] = f"View data associated with warehouse: {params[1]} ({params[0]})"
+    menu_state["name"] = f"{params[1]}"
 
     menu_state["options"].append({ 
         "name": "Stock",
@@ -268,9 +259,9 @@ def menu_view_warehouse(db: database.Database, params = None):
     clear()
     return True
 
-def menu_view_warehouses(db: database.Database, params = None):
+def menu_select_view_warehouse(db: database.Database, params = None):
     menu_state = new_menu_state()
-    menu_state["desc"] = "List of Warehouses"
+    menu_state["name"] = "Warehouse"
 
     # Fetch all warehouses
     db.cursor.execute("SELECT id, address FROM warehouse;")
@@ -296,13 +287,126 @@ def menu_view_database(db: database.Database, params = None):
     stock counts, all stock in a warehouse, order schedule, etc.
     """
     menu_state = new_menu_state()
-    menu_state["desc"] = "View data stored in the database"
+    menu_state["name"] = "View"
     
     menu_state["options"].append({ 
         "name": "View Warehouses", 
-        "func": menu_view_warehouses,
+        "func": menu_select_view_warehouse,
         "params": None
     })
+
+    while menu_state["loop"]:
+        menu_handler(db, menu_state)
+
+    clear()
+    return True
+
+# Modify
+def menu_update_stock(db: database.Database, params = None):
+    has_given_invalid_input = False
+    has_number = False
+    change = 0
+    
+    while not has_number:
+        flush_input()
+        clear()
+
+        # Print the menu chain
+        print(" > ".join(menu_chain + ["Update Stock"]))
+        print_separator()
+        print("Enter the change in stock quantity (positive to add, negative to remove)\n")
+        print(f"Stock: {params[1]} ({params[0]})")
+        print(f"Current quantity: {params[2]}")
+        print(f"Minimum quantity: {params[3]}")
+        print(f"Requested Change: {max(0, params[3] - params[2])}")
+        print_separator()
+
+        if has_given_invalid_input:
+            print("\nInvalid input. Please enter a valid integer.\n")
+        else:
+            print("")
+        
+        try:
+            change = int(input("Change: "))
+            has_number = True
+        except:
+            has_given_invalid_input = True
+        
+    if change != 0:
+        # Update the stock quantity in the database
+        db.cursor.execute("CALL update_stock_quantity(%s, %s);", (params[0], change))
+    
+    clear()
+    return True
+
+def menu_select_update_stock(db: database.Database, params = None):
+    menu_state = new_menu_state()
+    menu_state["name"] = "Update Stock"
+
+    while menu_state["loop"]: # Loop to update stock after returning from update_stock
+        menu_state["options"] = [] # Reset options
+        
+        # Fetch all stocks in the warehouse
+        # Sort by if the quantity is below the minimum quantity
+        db.cursor.execute(f"""
+        SELECT s.ID, p.description, s.quantity, s.minQuantity
+        FROM stock s
+        INNER JOIN product p ON s.prod_ID = p.ID
+        WHERE s.WH_ID = {params}
+        ORDER BY (s.quantity < s.minQuantity) DESC, s.quantity DESC;
+        """)
+        rows = db.cursor.fetchall()
+
+        # Add each stock as an option
+        for row in rows:
+            menu_state["options"].append({
+                "name": f"{row[1]} ({row[2]} / {row[3]})", # "description (quantity / minQuantity)"
+                "func": menu_update_stock,
+                "params": row # (stock ID, description, quantity, minQuantity)
+            })
+
+        menu_handler(db, menu_state)
+
+    clear()
+    return True
+
+def menu_modify_warehouse(db: database.Database, params = None):
+    menu_state = new_menu_state()
+    menu_state["name"] = f"{params[1]}"
+
+    menu_state["options"].append({
+        "name": "Update Stock",
+        "func": menu_select_update_stock,
+        "params": params[0] # warehouse ID
+    })
+
+    menu_state["options"].append({
+        "name": "Register Stock",
+        "func": menu_TODO,
+        "params": params[0] # warehouse ID
+    })
+
+    while menu_state["loop"]:
+        menu_handler(db, menu_state)
+
+    clear()
+    return True
+
+def menu_select_modify_warehouse(db: database.Database, params = None):
+    menu_state = new_menu_state()
+    menu_state["name"] = "Warehouse"
+
+    # Fetch all warehouses
+    db.cursor.execute("SELECT id, address FROM warehouse;")
+    rows = db.cursor.fetchall()
+
+    # Add each warehouse as an option
+    for row in rows:
+        menu_state["options"].append({
+            "name": f"[{row[0]}] " + row[1], # address
+            "func": menu_modify_warehouse,
+            "params": row # (warehouse ID, address)
+        })
 
     while menu_state["loop"]:
         menu_handler(db, menu_state)
@@ -315,7 +419,41 @@ def menu_modify_database(db: database.Database, params = None):
     Submenu for modifying data stored in the database, like adding a new supplier
     or product, (un)registering stock items, completing a restock order, etc.
     """
-    return menu_TODO(db)
+    menu_state = new_menu_state()
+    menu_state["name"] = "Modify"
+
+    menu_state["options"].append({
+        "name": "Modify Warehouses",
+        "func": menu_select_modify_warehouse,
+        "params": None
+    })
+
+    while menu_state["loop"]:
+        menu_handler(db, menu_state)
+
+    clear()
+    return True
+
+# Other
+def menu_TODO(db: database.Database, params = None):
+    """
+    Submenu for showing that the chosen option is unimplemented
+    """
+    menu_state = new_menu_state()
+    menu_state["name"] = "Unimplemented Option"
+    menu_state["desc"] = "This option has not yet been implemented!"
+    
+    menu_state["options"].append({ 
+        "name": "Back", 
+        "func": go_back,
+        "params": None
+    })
+
+    while menu_state["loop"]:
+        menu_handler(db, menu_state)
+
+    clear()
+    return True
 
 def menu_cmd(db: database.Database, params = None):
     flush_input()
@@ -342,6 +480,7 @@ def menu_main(db: database.Database, params = None):
     Main menu for the simplified database interface. Uses immediate keyboard input instead of text.
     """
     menu_state = new_menu_state()
+    menu_state["name"] = "Database"
     menu_state["desc"] = "Database Interface\nArrow keys can be used to navigate, select and return"
     
     menu_state["options"].append({ 
