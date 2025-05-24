@@ -33,7 +33,7 @@ class Stock:
         BEGIN
             IF NEW.quantity < NEW.minQuantity THEN
                 INSERT INTO ToRestock (stock_ID, dateAdded)
-                VALUES (NEW.ID, CURDATE());
+                VALUES (NEW.ID, NOW());
             END IF;
         END;
         """
@@ -58,7 +58,7 @@ class Stock:
                     WHERE stock_ID = NEW.ID AND dateOrdered IS NULL
                 ) THEN
                     INSERT INTO ToRestock (stock_ID, dateAdded)
-                    VALUES (NEW.ID, CURDATE());
+                    VALUES (NEW.ID, NOW());
                 END IF;
             END IF;
         END;
@@ -85,12 +85,12 @@ class Stock:
                 ) THEN
                     -- Update the existing order with the new quantity difference
                     UPDATE ToRestock
-                    SET dateOrdered = CURDATETIME(), orderCount = (NEW.quantity - OLD.quantity)
+                    SET dateOrdered = NOW(), orderCount = (NEW.quantity - OLD.quantity)
                     WHERE stock_ID = NEW.ID AND dateOrdered IS NULL;
                 ELSE
                     -- Create a new order for this stock
                     INSERT INTO ToRestock (stock_ID, dateAdded, dateOrdered, orderCount)
-                    VALUES (NEW.ID, CURDATETIME(), CURDATETIME(), (NEW.quantity - OLD.quantity));
+                    VALUES (NEW.ID, NOW(), NOW(), (NEW.quantity - OLD.quantity));
                 END IF;
             END IF;
         END;

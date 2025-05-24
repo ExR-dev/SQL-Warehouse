@@ -11,8 +11,8 @@ class ToRestock:
         CREATE TABLE IF NOT EXISTS ToRestock (
             ID INTEGER AUTO_INCREMENT PRIMARY KEY,
             stock_ID INTEGER NOT NULL,
-            dateAdded TEXT NOT NULL,
-            dateOrdered TEXT,
+            dateAdded DATETIME NOT NULL,
+            dateOrdered DATETIME,
             orderCount INTEGER DEFAULT NULL,
             FOREIGN KEY (stock_ID) REFERENCES Stock(ID)
         );
