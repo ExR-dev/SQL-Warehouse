@@ -8,7 +8,7 @@ from enum import Enum
 class Main_Choices(Enum):
     exit = "0"
     Select_Warehouse = "1"
-    Update_Database = "2"
+    Save_Database = "2"
     devmode = "dev"
 
 class Warehouse_Menu_Choices(Enum):
@@ -77,6 +77,19 @@ def main_menu(db : Database) -> bool:
             warehouse_menu(cursor, curr_warehouse)
             menu_open = True
 
+        elif choice == Main_Choices.Save_Database.value:
+            clear_console()
+            print("Saving Changes")
+            db.conn.commit()
+            print("Database saved!")
+            try:
+                input("Press \"ENTER\" to continue...")
+            except:
+                print("\nError: Closing Menu")
+                section_open = False
+            continue
+            
+
         elif choice == Main_Choices.devmode.value:
             clear_console()
             print("Entering development mode")
@@ -87,7 +100,10 @@ def main_menu(db : Database) -> bool:
     return devmode
 
 def warehouse_selection(cursor : MySQLCursor, curr_warehouse : int | None) -> str:
-    # Query the warehouse table print out as an option list move to next step in menu
+    '''
+        Prints out list of warehouses and allow user to select id coresponding to specfic warehouse,
+        returns selected warehouse ID
+    '''
     section_open = True
     options = []
     clear_console()
@@ -137,6 +153,11 @@ def warehouse_selection(cursor : MySQLCursor, curr_warehouse : int | None) -> st
     return choice
 
 def stock_selection(cursor : MySQLCursor, curr_warehouse : int | None) -> str:
+    '''
+        Prints out a list of stock, either for specified warehouse or all stocks,
+        and allow user to select specific stock coresponding to stock ID
+        Returns selected stock ID
+    '''
     section_open = True
     options =[]
     if curr_warehouse is None:
@@ -255,7 +276,6 @@ def warehouse_view_menu(cursor : MySQLCursor, curr_warehouse : int):
                 print("\nError: Closing Menu")
                 section_open = False
 
-# Not Done Currently working on
 def warehouse_update_menu(cursor : MySQLCursor, curr_warehouse : int):
     section_open = True
     
@@ -280,11 +300,25 @@ def warehouse_update_menu(cursor : MySQLCursor, curr_warehouse : int):
             section_open = True
 
         if choice == Warehouse_Update_Menu_Choices.New_Stock.value:
-            pass
+            clear_console()
+            print("Not Implemented yet")
+            try:
+                input("Press \"ENTER\" to continue...")
+            except:
+                print("\nError: Closing Menu")
+                section_open = False
+            continue
 
         if choice == Warehouse_Update_Menu_Choices.Change_Adress.value:
-            pass
-# Not Done
+            clear_console()
+            print("Not Implemented yet")
+            try:
+                input("Press \"ENTER\" to continue...")
+            except:
+                print("\nError: Closing Menu")
+                section_open = False
+            continue
+
 def warehouse_stock_menu(cursor : MySQLCursor, curr_warehouse : int):
     section_open = True
     # loop while open
@@ -334,6 +368,7 @@ def warehouse_stock_menu(cursor : MySQLCursor, curr_warehouse : int):
                         print("\nError: Closing Menu")
                         section_open = False
                     continue
+                
 
             try:
                 cursor.execute(f"CALL update_stock_quantity({stock}, {quantity_change});")
