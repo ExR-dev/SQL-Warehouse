@@ -1,7 +1,12 @@
 import mysql.connector
 
 class Stock:
+
     def __init__(self, cursor):
+        def execute_multi_sql(self, procedure_sql : str):
+            for _ in self.cursor.execute(procedure_sql, multi=True):
+                pass
+
         self.cursor = cursor
         self.table_name = "Stock"
         self.table_columns = ["ID", "quantity", "prod_ID", "WH_ID", "minQuantity"]
@@ -59,6 +64,8 @@ class Stock:
         END;
         """
 
+        execute_multi_sql(self, schedule_update_sql)
+
         # Create a trigger to update the ToRestock table when stock is updated
         # Looks through the toRestock table to see if an active restock order exists for the stock.
         # If it does, it updates the dateOrdered to the current date and the orderCount to the change in quantity.
@@ -78,19 +85,18 @@ class Stock:
                 ) THEN
                     -- Update the existing order with the new quantity difference
                     UPDATE ToRestock
-                    SET dateOrdered = CURDATE(), orderCount = (NEW.quantity - OLD.quantity)
+                    SET dateOrdered = CURDATETIME(), orderCount = (NEW.quantity - OLD.quantity)
                     WHERE stock_ID = NEW.ID AND dateOrdered IS NULL;
                 ELSE
                     -- Create a new order for this stock
                     INSERT INTO ToRestock (stock_ID, dateAdded, dateOrdered, orderCount)
-                    VALUES (NEW.ID, CURDATE(), CURDATE(), (NEW.quantity - OLD.quantity));
+                    VALUES (NEW.ID, CURDATETIME(), CURDATETIME(), (NEW.quantity - OLD.quantity));
                 END IF;
             END IF;
         END;
         """
 
-        for _ in self.cursor.execute(complete_schedule_sql, multi=True):
-            pass
+        execute_multi_sql(self, complete_schedule_sql)
 
         # Creates procedure that selects the total quantity of all product group
         total_quantity_sql = '''
@@ -103,8 +109,7 @@ class Stock:
 	    END
         '''
 
-        for _ in self.cursor.execute(total_quantity_sql, multi=True):
-            pass
+        execute_multi_sql(self, total_quantity_sql)
         
         # Creates a procedure to view all stocks belonging to a specific warehouse
         warehouse_inventory_sql = """
@@ -118,8 +123,7 @@ class Stock:
         END
         """
 
-        for _ in self.cursor.execute(warehouse_inventory_sql, multi=True):
-            pass
+        execute_multi_sql(self, warehouse_inventory_sql)
 
         # Create a procedure to update a stocks quantity relative to its current,
         # using  stock_id, and quantity change
@@ -133,9 +137,31 @@ class Stock:
         END
         '''
 
-        for _ in self.cursor.execute(update_stock_quantity_sql, multi=True):
-            pass
+        execute_multi_sql(self, update_stock_quantity_sql)
 
+        # Create a procedure to set a stocks quantity
+        set_stock_quantity_sql = '''
+        DROP PROCEDURE IF EXISTS set_stock_quantity;
+        CREATE PROCEDURE set_stock_quantity(IN stockID INTEGER, IN newQuantity INTEGER)
+        BEGIN
+            UPDATE stock
+                SET quantity = newQuantity
+                WHERE ID = stockID;
+        END
+        '''
+        execute_multi_sql(self, set_stock_quantity_sql)
+
+        update_stock_minQuantity_sql = '''
+        DROP PROCEDURE IF EXISTS update_stock_minQuantity;
+        CREATE PROCEDURE update_stock_minQuantity(IN stockID INTEGER, IN minQuantityChange INTEGER)
+        BEGIN
+            UPDATE Stock
+                SET minQuantity = minQuantity + minQuantityChange
+                WHERE ID = stockID;
+        END
+        '''
+
+        execute_multi_sql(self, update_stock_minQuantity_sql)
 
     def insert(self, values: list[str]):
         """
