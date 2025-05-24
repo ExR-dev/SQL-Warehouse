@@ -432,6 +432,9 @@ def menu_modify_database(db: database.Database, params = None):
     while menu_state["loop"]:
         menu_handler(db, menu_state)
 
+    # Save changes to the database
+    db.commit()
+
     clear()
     return True
 

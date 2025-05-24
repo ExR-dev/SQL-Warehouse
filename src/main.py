@@ -18,8 +18,11 @@ if __name__ == "__main__":
     print("Starting Warehouse Management System...")
 
     while db.is_open():
-        print("q - Exit")
         print("Select Mode (e / m)\n")
+        print("m - M Menu")
+        print("e - E Menu")
+        print("c - Command-line interface")
+        print("q - Exit")
 
         mode = input("> ").lower()
 
@@ -46,6 +49,20 @@ if __name__ == "__main__":
 
             if db.is_open():
                 interface.menu_main(db)
+        elif mode == "c":
+            clear()
+            while db.is_open():
+                try:
+                    cmd_in = input("> ")
+                except:
+                    print("\nError: Closing Database...")
+                    db.close()
+                    break
+
+                ret = dbcmd.exec_cmd(db, cmd_in)
+                if ret == "quit":
+                    break
+                print(" ")
         elif mode == "q":
             print("Exiting...")
             break
