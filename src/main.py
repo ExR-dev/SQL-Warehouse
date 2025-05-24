@@ -15,38 +15,42 @@ if __name__ == "__main__":
     db = database.Database("warehouseDatabase")
 
     clear()
-    mode = input("Set Mode (e/m): ").lower()
+    print("Starting Warehouse Management System...")
 
-    while mode not in ["e", "m"]:
+    while db.is_open():
+        print("q - Exit")
+        print("Select Mode (e / m)\n")
+
+        mode = input("> ").lower()
+
+        if mode == "m":
+            import menu
+            devmode = menu.main_menu(db)
+
+            if devmode:
+                print("Entered dev mode")
+                while db.is_open():
+                    try:
+                        cmd_in = input("> ")
+                    except:
+                        print("\nError: Closing Database...")
+                        db.close()
+                        break
+
+                    ret = dbcmd.exec_cmd(db, cmd_in)
+                    if ret == "quit":
+                        break
+                    print(" ")
+        elif mode == "e":
+            import interface
+
+            if db.is_open():
+                interface.menu_main(db)
+        elif mode == "q":
+            print("Exiting...")
+            break
+
         clear()
-        mode = input("Set Mode (e/m): ").lower()
-
-    if mode == "m":
-        import menu
-        devmode = menu.main_menu(db)
-
-        if devmode:
-            print("Entered dev mode")
-            while db.is_open():
-                try:
-                    cmd_in = input("> ")
-                except:
-                    print("\nError: Closing Database...")
-                    db.close()
-                    break
-
-                ret = dbcmd.exec_cmd(db, cmd_in)
-                if ret == "quit":
-                    break
-                print(" ")
-        else:
-            print("Closing Database")
-            db.close()
-    else:
-        import interface
-
-        if db.is_open():
-            interface.menu_main(db)
         
     db.close()
 
