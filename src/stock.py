@@ -76,7 +76,7 @@ class Stock:
         AFTER UPDATE ON Stock
         FOR EACH ROW
         BEGIN
-            IF NEW.quantity > OLD.quantity THEN
+            IF NEW.quantity > OLD.quantity OR (NEW.quantity >= NEW.minQuantity AND OLD.quantity < OLD.minQuantity) THEN
                 -- Check if there is an existing order for this stock that has not been ordered yet
                 IF EXISTS (
                     SELECT 1
@@ -87,7 +87,7 @@ class Stock:
                     UPDATE ToRestock
                     SET dateOrdered = NOW(), orderCount = (NEW.quantity - OLD.quantity)
                     WHERE stock_ID = NEW.ID AND dateOrdered IS NULL;
-                ELSE
+                ELSEIF NEW.quantity > OLD.quantity THEN
                     -- Create a new order for this stock
                     INSERT INTO ToRestock (stock_ID, dateAdded, dateOrdered, orderCount)
                     VALUES (NEW.ID, NOW(), NOW(), (NEW.quantity - OLD.quantity));

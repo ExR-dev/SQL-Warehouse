@@ -225,8 +225,6 @@ def menu_restock_history(db: database.Database, params = None):
     menu_state["name"] = "Restock History"
 
     # Fetch full restock history of current warehouse
-    # toRestock has stock_ID, Stock has WH_ID
-    # Stock has prod_ID, Product has description
     # Remove items with no dateOrdered
     db.cursor.execute(f"""
     SELECT 
@@ -237,7 +235,7 @@ def menu_restock_history(db: database.Database, params = None):
         FROM ToRestock r
         INNER JOIN Stock s ON r.stock_ID = s.ID
         INNER JOIN Product p ON s.prod_ID = p.ID
-        WHERE s.WH_ID = {params}
+        WHERE s.WH_ID = {params} -- params: warehouse ID (int)
         ORDER BY r.dateAdded DESC
     ) AS subquery
     WHERE dateOrdered IS NOT NULL;
