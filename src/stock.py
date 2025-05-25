@@ -116,7 +116,7 @@ class Stock:
         DROP PROCEDURE IF EXISTS warehouse_inventory;
         CREATE PROCEDURE warehouse_inventory(IN active_warehouse_ID INT)
         BEGIN
-            SELECT s.ID AS StockID, s.prod_ID AS ProductID, s.quantity AS Quantity, p.description AS Description
+            SELECT s.ID AS StockID, s.prod_ID AS ProductID, s.quantity AS Quantity, s.minQuantity AS MinQuantity, p.description AS Description
             FROM Stock s
             LEFT JOIN product p ON s.prod_ID  = p.ID
             WHERE active_warehouse_ID = s.WH_ID;
