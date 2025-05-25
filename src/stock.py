@@ -103,9 +103,11 @@ class Stock:
         DROP PROCEDURE IF EXISTS total_quantity;
         CREATE PROCEDURE total_quantity()
 	    BEGIN
-		    SELECT prod_ID AS ProductID, SUM(quantity) AS totalQuantity 
-		    FROM Stock
-		    GROUP BY prod_ID;
+		    SELECT p.ID AS ProductID, p.description AS Description, SUM(s.quantity) AS totalQuantity 
+		    FROM Stock s 
+            RIGHT JOIN product p ON s.prod_id = p.ID 
+		    GROUP BY p.ID
+            ORDER BY p.ID ASC;
 	    END
         '''
 

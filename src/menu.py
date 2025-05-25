@@ -20,6 +20,7 @@ class Warehouse_View_Menu_Choices(Enum):
     Back = "0"
     Inventory = "1"
     Retock_Needed = "2"
+    Product_quantities = "3"
 
 class Warehouse_Update_Menu_Choices(Enum):
     Back = "0"
@@ -260,6 +261,29 @@ def warehouse_view_menu(cursor : MySQLCursor, curr_warehouse : int):
 
             try:    
                 for result in cursor.execute(sql_torestock_needed, multi=True):
+                    if result.with_rows:
+                        field_names = get_field_names(cursor.description)
+                        rows = cursor.fetchall()
+                        tableUtils.print_table(field_names, rows)
+
+            except Exception as e:
+                print("Error: Please Conntact system admin")
+                print(f"SQL Error: {e}")
+
+            # Stay on view result untill input has been given
+            try:
+                input("Press \"ENTER\" to continue...")
+            except:
+                print("\nError: Closing Menu")
+                section_open = False
+
+        elif choice == Warehouse_View_Menu_Choices.Product_quantities.value:
+            sql_total_quantity = f'''CALL total_quantity();'''
+            clear_console()
+            print("==== Product Quantity List ====")
+
+            try:
+                for result in cursor.execute(sql_total_quantity, multi=True):
                     if result.with_rows:
                         field_names = get_field_names(cursor.description)
                         rows = cursor.fetchall()
