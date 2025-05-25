@@ -276,6 +276,8 @@ def cmd_devDB(db: database.Database, cmd: str, params: list[str]) -> bool:
         for ret in db.cursor.execute(exec_str, multi=True):
             pass
 
+        db.commit()
+
         print("Testing Database initialized successfully.")
     else:
         print("Aborted.")

@@ -18,7 +18,7 @@ if __name__ == "__main__":
     print("Starting Warehouse Management System...")
 
     while db.is_open():
-        print("Select Mode (e / m)\n")
+        print("Select Mode\n")
         print("m - M Menu")
         print("e - E Menu")
         print("c - Command-line interface")

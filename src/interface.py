@@ -170,6 +170,33 @@ def go_back(db: database.Database, params = None):
 
 # Sub Menus
 # View
+def menu_view_products(db: database.Database, params = None):
+    menu_state = new_menu_state()
+    menu_state["name"] = "Products"
+
+    # Fetch all products, along with their suppliers
+    db.cursor.execute("""
+    SELECT p.ID AS product_id, s.ID AS supplier_id, p.description, s.address AS supplier_address
+    FROM Product p
+    INNER JOIN Supplier s ON p.sup_ID = s.ID;
+    """)
+    field_names = [i[0] for i in db.cursor.description]
+    rows = db.cursor.fetchall()
+
+    menu_state["desc"] = tableUtils.table_to_string(field_names, rows)
+    
+    menu_state["options"].append({
+        "name": "Back", 
+        "func": go_back,
+        "params": None
+    })
+
+    while menu_state["loop"]:
+        menu_handler(db, menu_state)
+
+    clear()
+    return True
+
 def menu_restock_schedule(db: database.Database, params = None):
     menu_state = new_menu_state()
     menu_state["name"] = "Restock Schedule"
@@ -293,6 +320,12 @@ def menu_view_database(db: database.Database, params = None):
     menu_state["options"].append({ 
         "name": "View Warehouses", 
         "func": menu_select_view_warehouse,
+        "params": None
+    })
+
+    menu_state["options"].append({ 
+        "name": "View Products", 
+        "func": menu_view_products,
         "params": None
     })
 
