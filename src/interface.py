@@ -387,7 +387,7 @@ def menu_select_update_stock(db: database.Database, params = None):
         FROM stock s
         INNER JOIN product p ON s.prod_ID = p.ID
         WHERE s.WH_ID = {params}
-        ORDER BY (s.quantity < s.minQuantity) DESC, s.quantity / s.minQuantity DESC;
+        ORDER BY (s.quantity < s.minQuantity) DESC, s.quantity / s.minQuantity ASC;
         """)
         rows = db.cursor.fetchall()
 
